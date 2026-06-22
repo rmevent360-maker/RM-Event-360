@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@355;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Montserrat", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  
+  --color-gold-50: #fff7ed;
+  --color-gold-100: #ffedd5;
+  --color-gold-200: #fed7aa;
+  --color-gold-300: #ffba74;
+  --color-gold-400: #f97316;
+  --color-gold-500: #ea580c;
+  --color-gold-600: #c2410c;
+  --color-gold-700: #9a3412;
+  --color-gold-800: #7c2d12;
+  --color-gold-900: #431407;
+  
+  --color-dark-primary: #ffffff;
+  --color-dark-secondary: #f9fafb;
+  --color-dark-tertiary: #f3f4f6;
+}
+
+@layer base {
+  body {
+    background-color: #ffffff;
+    color: #1f2937;
+    font-family: var(--font-sans);
+  }
+}
+
+/* Custom visual glow mechanics for the 360 Photobooth theme */
+.gold-glow {
+  box-shadow: 0 0 20px rgba(234, 88, 12, 0.15);
+}
+
+.gold-glow-hover:hover {
+  box-shadow: 0 0 25px rgba(234, 88, 12, 0.3);
+  border-color: rgba(234, 88, 12, 0.6);
+}
+
+.glow-ring {
+  animation: glowAnimation 4s infinite ease-in-out;
+}
+
+@keyframes glowAnimation {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(234, 88, 12, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(234, 88, 12, 0.45);
+  }
+}
+
+/* Custom scrollbar to keep layout premium */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #ffffff;
+}
+::-webkit-scrollbar-thumb {
+  background: #ea580c;
+  border-radius: 9px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c2410c;
+}
+
