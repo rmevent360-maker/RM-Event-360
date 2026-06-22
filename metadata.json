@@ -1,5 +1,5 @@
 {
-  "name": "RM Event 360 App",
+  "name": "RM EVENT 360",
   "description": "Plateforme d'événementiel et de réservation de photobooth 360° à Dakar, présentant nos offres Cinéma, Corporate, Particuliers et Éducation.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
