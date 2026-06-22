@@ -2,7 +2,6 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import nodemailer from 'nodemailer';
 import { GoogleGenAI } from '@google/genai';
-import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -10,157 +9,158 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-async function startServer() {
-  app.use(express.json());
+app.use(express.json());
 
-  // Configuration env
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-  const EMAIL_SENDER = process.env.EMAIL_SENDER || "rmevent360@gmail.com";
-  // The account password belongs in env secrets for security
-  const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD || "";
-  const DESTINATION_EMAIL = 'rmevent360@gmail.com';
+// Configuration env
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+const EMAIL_SENDER = process.env.EMAIL_SENDER || "rmevent360@gmail.com";
+// The account password belongs in env secrets for security
+const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD || "";
+const DESTINATION_EMAIL = 'rmevent360@gmail.com';
 
-  const ai = new GoogleGenAI({
-    apiKey: GEMINI_API_KEY,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      }
+const ai = new GoogleGenAI({
+  apiKey: GEMINI_API_KEY,
+  httpOptions: {
+    headers: {
+      'User-Agent': 'aistudio-build',
     }
-  });
+  }
+});
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: EMAIL_SENDER,
-      pass: EMAIL_PASSWORD
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: EMAIL_SENDER,
+    pass: EMAIL_PASSWORD
+  }
+});
+
+// API endpoint for automatic notification mailing
+app.post('/api/valider-evenement', async (req: Request, res: Response) => {
+  try {
+    const { type, id, client, details, montant } = req.body;
+
+    if (!type || !id || !client || !details) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Données manquantes (type, id, client ou details requis)." 
+      });
     }
-  });
 
-  // API endpoint for automatic notification mailing
-  app.post('/api/valider-evenement', async (req: Request, res: Response) => {
-    try {
-      const { type, id, client, details, montant } = req.body;
+    let emailContent = "";
 
-      if (!type || !id || !client || !details) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Données manquantes (type, id, client ou details requis)." 
+    // 1. Call to Google AI Studio (Gemini) using gemini-3.5-flash
+    if (GEMINI_API_KEY) {
+      try {
+        const promptSystem = `Tu es un assistant de gestion d'événements. Rédige un e-mail de notification de validation de ${type} interne, clair, structuré et professionnel destiné à l'équipe de rmevent360@gmail.com.`;
+        const promptUtilisateur = `Voici les détails de la validation :
+          - Type de transaction : ${type} (Devis ou Réservation)
+          - Référence : ${id}
+          - Client : ${client.nom} (${client.email}, ${client.telephone})
+          - Détails de la prestation : ${details}
+          - Montant total : ${montant ? montant : 'Non spécifié'}
+          
+          Rédige un e-mail synthétique contenant un récapitulatif clair sous forme de liste à puces.`;
+
+        const response = await ai.models.generateContent({
+          model: 'gemini-3.5-flash',
+          contents: [{ parts: [{ text: promptUtilisateur }] }],
+          config: {
+            systemInstruction: promptSystem,
+          }
         });
-      }
 
-      let emailContent = "";
-
-      // 1. Call to Google AI Studio (Gemini) using gemini-3.5-flash
-      if (GEMINI_API_KEY) {
-        try {
-          const promptSystem = `Tu es un assistant de gestion d'événements. Rédige un e-mail de notification de validation de ${type} interne, clair, structuré et professionnel destiné à l'équipe de rmevent360@gmail.com.`;
-          const promptUtilisateur = `Voici les détails de la validation :
-            - Type de transaction : ${type} (Devis ou Réservation)
-            - Référence : ${id}
-            - Client : ${client.nom} (${client.email}, ${client.telephone})
-            - Détails de la prestation : ${details}
-            - Montant total : ${montant ? montant : 'Non spécifié'}
-            
-            Rédige un e-mail synthétique contenant un récapitulatif clair sous forme de liste à puces.`;
-
-          const response = await ai.models.generateContent({
-            model: 'gemini-3.5-flash',
-            contents: [{ parts: [{ text: promptUtilisateur }] }],
-            config: {
-              systemInstruction: promptSystem,
-            }
-          });
-
-          emailContent = response.text || "";
-        } catch (aiError) {
-          console.error("Erreur avec l'API Gemini, génération du mail par défaut :", aiError);
-          emailContent = genererMailDeSecours(type, id, client, details, montant);
-        }
-      } else {
+        emailContent = response.text || "";
+      } catch (aiError) {
+        console.error("Erreur avec l'API Gemini, génération du mail par défaut :", aiError);
         emailContent = genererMailDeSecours(type, id, client, details, montant);
       }
+    } else {
+      emailContent = genererMailDeSecours(type, id, client, details, montant);
+    }
 
-      // 2. Configuration du contenu du mail haut de gamme (style Reçu officiel pour le Client et RM Event)
-      const recipients = [DESTINATION_EMAIL];
-      if (client.email && client.email.trim() !== "" && client.email.includes('@')) {
-        recipients.push(client.email.trim());
-      }
+    // 2. Configuration du contenu du mail haut de gamme (style Reçu officiel pour le Client et RM Event)
+    const recipients = [DESTINATION_EMAIL];
+    if (client.email && client.email.trim() !== "" && client.email.includes('@')) {
+      recipients.push(client.email.trim());
+    }
 
-      const isQuote = type.toLowerCase() === 'devis';
-      const htmlReceipt = genererHtmlRecu(type, id, client, details, montant);
+    const isQuote = type.toLowerCase() === 'devis';
+    const htmlReceipt = genererHtmlRecu(type, id, client, details, montant);
 
-      const mailOptions = {
-        from: `"RM Event 360° Dakar" <${EMAIL_SENDER}>`,
-        to: recipients.join(', '),
-        subject: isQuote 
-          ? `📄 DEMANDE DE DEVIS ENREGISTRÉE - Réf: ${id}` 
-          : `🎉 REÇU DE CONFIRMATION DE PAIEMENT - Réf: ${id}`,
-        text: emailContent, 
-        html: htmlReceipt
-      };
+    const mailOptions = {
+      from: `"RM Event 360° Dakar" <${EMAIL_SENDER}>`,
+      to: recipients.join(', '),
+      subject: isQuote 
+        ? `📄 DEMANDE DE DEVIS ENREGISTRÉE - Réf: ${id}` 
+        : `🎉 REÇU DE CONFIRMATION DE PAIEMENT - Réf: ${id}`,
+      text: emailContent, 
+      html: htmlReceipt
+    };
 
-      // 3. Envoi de l'e-mail avec gestion gracieuse d'erreur
-      let emailSent = false;
-      let emailErrorDetails = "";
+    // 3. Envoi de l'e-mail avec gestion gracieuse d'erreur
+    let emailSent = false;
+    let emailErrorDetails = "";
 
-      if (!EMAIL_PASSWORD || EMAIL_PASSWORD === "YOUR_APP_PASSWORD_HERE" || EMAIL_PASSWORD === "R98533540M") {
-        const warningMsg = "Configuration SMTP Gmail incomplète. Veuillez renseigner EMAIL_PASSWORD avec un code de mot de passe d'application Google à 16 caractères.";
-        console.error(`⚠️ [SMTP] ${warningMsg}`);
-        emailErrorDetails = warningMsg;
-        printGmailAppPasswordInstructions();
-      } else {
-        try {
-          await transporter.sendMail(mailOptions);
-          emailSent = true;
-          console.log(`✅ Notification e-mail envoyée avec succès à ${recipients.join(', ')}`);
-        } catch (mailError: any) {
-          console.error("⚠️ Échec de l'envoi de l'e-mail de notification :");
-          console.error(mailError);
-          emailErrorDetails = mailError.message || String(mailError);
+    if (!EMAIL_PASSWORD || EMAIL_PASSWORD === "YOUR_APP_PASSWORD_HERE" || EMAIL_PASSWORD === "R98533540M") {
+      const warningMsg = "Configuration SMTP Gmail incomplète. Veuillez renseigner EMAIL_PASSWORD avec un code de mot de passe d'application Google à 16 caractères.";
+      console.error(`⚠️ [SMTP] ${warningMsg}`);
+      emailErrorDetails = warningMsg;
+      printGmailAppPasswordInstructions();
+    } else {
+      try {
+        await transporter.sendMail(mailOptions);
+        emailSent = true;
+        console.log(`✅ Notification e-mail envoyée avec succès à ${recipients.join(', ')}`);
+      } catch (mailError: any) {
+        console.error("⚠️ Échec de l'envoi de l'e-mail de notification :");
+        console.error(mailError);
+        emailErrorDetails = mailError.message || String(mailError);
 
-          if (emailErrorDetails.includes("Application-specific password required") || emailErrorDetails.includes("534-5.7.9")) {
-            printGmailAppPasswordInstructions();
-          }
+        if (emailErrorDetails.includes("Application-specific password required") || emailErrorDetails.includes("534-5.7.9")) {
+          printGmailAppPasswordInstructions();
         }
       }
-
-      // We return 200 success: true so that the checkout flow completes and generates tickets/pdfs
-      // even if SMTP failed, but we include email details so client console or devs can see it.
-      return res.status(200).json({
-        success: true,
-        message: emailSent 
-          ? `Notification de ${type} envoyée avec succès.`
-          : `Validation enregistrée, mais la notification par e-mail n'a pas pu être envoyée.`,
-        emailSent,
-        emailErrorDetails: emailSent ? null : emailErrorDetails
-      });
-
-    } catch (error) {
-      console.error("Erreur lors du traitement de la validation :", error);
-      return res.status(500).json({
-        success: false,
-        message: "Une erreur est survenue lors de la validation."
-      });
     }
-  });
 
-  function printGmailAppPasswordInstructions() {
-    console.error("\n========================== CONFIGURATION SMTP GMAIL REQUISE ==========================");
-    console.error("Votre compte Gmail requiert un 'Mot de passe d'application' à 16 caractères pour envoyer des e-mails.");
-    console.error("Pour générer un mot de passe d'application Gmail :");
-    console.error("1. Rendez-vous sur votre compte Google : https://myaccount.google.com");
-    console.error("2. Accédez à la section 'Sécurité' dans le panneau de gauche.");
-    console.error("3. Activez la 'Validation en deux étapes' si ce n'est pas déjà fait.");
-    console.error("4. Dans la barre de recherche en haut, cherchez 'Mots de passe d'application' (App passwords).");
-    console.error("5. Saisissez un nom pour identifier l'application (ex: 'Nodemailer' ou 'RM Events App').");
-    console.error("6. Copiez le code de sécurité à 16 caractères généré par Google (s'affiche dans un encadré jaune).");
-    console.error("7. Ouvrez l'onglet Secrets de votre projet d'AI Studio, et définissez EMAIL_PASSWORD avec cette valeur.");
-    console.error("======================================================================================\n");
+    // We return 200 success: true so that the checkout flow completes and generates tickets/pdfs
+    // even if SMTP failed, but we include email details so client console or devs can see it.
+    return res.status(200).json({
+      success: true,
+      message: emailSent 
+        ? `Notification de ${type} envoyée avec succès.`
+        : `Validation enregistrée, mais la notification par e-mail n'a pas pu être envoyée.`,
+      emailSent,
+      emailErrorDetails: emailSent ? null : emailErrorDetails
+    });
+
+  } catch (error) {
+    console.error("Erreur lors du traitement de la validation :", error);
+    return res.status(500).json({
+      success: false,
+      message: "Une erreur est survenue lors de la validation."
+    });
   }
+});
 
+function printGmailAppPasswordInstructions() {
+  console.error("\n========================== CONFIGURATION SMTP GMAIL REQUISE ==========================");
+  console.error("Votre compte Gmail requiert un 'Mot de passe d'application' à 16 caractères pour envoyer des e-mails.");
+  console.error("Pour générer un mot de passe d'application Gmail :");
+  console.error("1. Rendez-vous sur votre compte Google : https://myaccount.google.com");
+  console.error("2. Accédez à la section 'Sécurité' dans le panneau de gauche.");
+  console.error("3. Activez la 'Validation en deux étapes' si ce n'est pas déjà fait.");
+  console.error("4. Dans la barre de recherche en haut, cherchez 'Mots de passe d'application' (App passwords).");
+  console.error("5. Saisissez un nom pour identifier l'application (ex: 'Nodemailer' ou 'RM Events App').");
+  console.error("6. Copiez le code de sécurité à 16 caractères généré par Google (s'affiche dans un encadré jaune).");
+  console.error("7. Ouvrez l'onglet Secrets de votre projet d'AI Studio, et définissez EMAIL_PASSWORD avec cette valeur.");
+  console.error("======================================================================================\n");
+}
+
+async function startServer() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
