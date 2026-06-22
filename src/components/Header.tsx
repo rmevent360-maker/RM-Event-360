@@ -27,21 +27,22 @@ export default function Header({ currentTab, setCurrentTab }: HeaderProps) {
             className="flex items-center space-x-3 cursor-pointer group"
           >
             {/* Custom high-quality logo branding from image attachment */}
-            <div className="relative w-14 h-14 flex items-center justify-center shrink-0 overflow-hidden">
+            <div className="relative w-14 h-14 flex items-center justify-center shrink-0 overflow-hidden rounded-full shadow-sm border border-gray-100">
               <img 
+                id="header-navigation-logo"
                 src={rmEventsLogo} 
-                alt="RM Events Logo" 
-                className="w-14 h-14 object-contain" 
+                alt="RM Event 360 Logo" 
+                className="w-14 h-14 object-cover rounded-full" 
                 referrerPolicy="no-referrer" 
               />
             </div>
             
             <div className="flex flex-col">
               <span className="font-display text-lg tracking-wider font-extrabold text-gray-900 group-hover:text-gold-500 transition-colors duration-300">
-                RM EVENTS
+                RM EVENT 360 APP
               </span>
               <span className="font-sans text-[9px] uppercase tracking-[0.25em] text-gold-500 font-bold">
-                Photobooth 360° Dakar
+                Photobooth de Prestige • Dakar
               </span>
             </div>
           </div>
