@@ -460,7 +460,7 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
       doc.setTextColor(148, 163, 184); // Slate-400
       centerText("RM EVENTS SÉNÉGAL • DAKAR Prestige 360 Video Booth", y);
       y += 4.5;
-      centerText("Contact : +221 77 916 20 75 • Email : rmevent360@gmail.com", y);
+      centerText("Contact : +221 77 976 20 75 • Email : rmevent360@gmail.com", y);
 
       // Save PDF document
       doc.save(isQuote ? `devis_rm_events_${generatedTicket.id}.pdf` : `reservation_rm_events_${generatedTicket.id}.pdf`);
