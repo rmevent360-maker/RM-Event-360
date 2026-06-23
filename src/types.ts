@@ -16,6 +16,7 @@ export interface Booking {
     customOverlay: boolean;
     redCarpet: boolean;
     usbMedia: boolean;
+    ledLighting?: boolean;
   };
   totalPrice: number;
   promoCodeUsed?: string;

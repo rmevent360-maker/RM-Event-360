@@ -99,21 +99,27 @@ export const PACKAGES: PackageDetail[] = [
 export const EXTRA_OPTIONS = [
   {
     id: 'customOverlay',
-    name: 'Overlay Personnalisé Premium',
+    name: 'Cadre vidéo personnalisé',
     description: 'Incrustation de logo d\'entreprise, bordures de marque ou bande-son thématique.',
-    price: 15000,
-  },
-  {
-    id: 'redCarpet',
-    name: 'Tapis Rouge & Poteaux de Guidage VIP',
-    description: 'Installation d\'un véritable tapis de gala avec cordons de velours digne de Cannes.',
     price: 25000,
   },
   {
+    id: 'redCarpet',
+    name: 'Tapis Rouge et Barrière VIP',
+    description: 'Installation d\'un véritable tapis de gala avec cordons de velours de prestige.',
+    price: 30000,
+  },
+  {
     id: 'usbMedia',
-    name: 'Clé USB Collector RM Events',
-    description: 'Liaison directe de tous les rushs originaux bruts et de vos vidéos compilées.',
+    name: 'Clé USB',
+    description: 'Remise directe de tous les rushs originaux bruts et vidéos finales de la soirée.',
     price: 10000,
+  },
+  {
+    id: 'ledLighting',
+    name: 'Éclairage LED supplémentaire',
+    description: 'Projecteurs LED d\'ambiance et éclairages pros additionnels pour illuminer l\'espace.',
+    price: 30000,
   }
 ];
 

@@ -66,6 +66,7 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
   const [customOverlay, setCustomOverlay] = useState(false);
   const [redCarpet, setRedCarpet] = useState(false);
   const [usbMedia, setUsbMedia] = useState(false);
+  const [ledLighting, setLedLighting] = useState(false);
 
   // Promo Code mechanics
   const [typedPromo, setTypedPromo] = useState('');
@@ -100,9 +101,10 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
   
   // Calculate extras
   let extrasPrice = 0;
-  if (customOverlay) extrasPrice += 15000;
-  if (redCarpet) extrasPrice += 25000;
+  if (customOverlay) extrasPrice += 25000;
+  if (redCarpet) extrasPrice += 30000;
   if (usbMedia) extrasPrice += 10000;
+  if (ledLighting) extrasPrice += 30000;
 
   const preDiscountPrice = basePrice + extrasPrice;
 
@@ -142,6 +144,61 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
     setPromoError('');
   };
 
+  // Submit handler for Direct Reservation Form (Tab 1 replacement)
+  const handleCalendarBookingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clientName || !clientEmail || !clientPhone) {
+      alert('Veuillez renseigner toutes vos coordonnées pour la réservation.');
+      return;
+    }
+
+    const ticketId = `RM-RES-${Math.floor(1000 + Math.random() * 9000)}`;
+    const endTimeHour = parseInt(eventHour.split(':')[0]) + duration;
+    const calculatedSlot = `${eventHour} - ${endTimeHour}:00`;
+
+    // CalculateTotalPrice with extras
+    let extrasPriceVal = 0;
+    if (customOverlay) extrasPriceVal += 25000;
+    if (redCarpet) extrasPriceVal += 30000;
+    if (usbMedia) extrasPriceVal += 10000;
+    if (ledLighting) extrasPriceVal += 30000;
+
+    const calcBasePrice = BASE_PRICES[duration] || (150000 + (duration - 4) * 35000);
+    const calculatedTotalPrice = calcBasePrice + extrasPriceVal;
+
+    const newBooking: Booking = {
+      id: ticketId,
+      clientName,
+      clientEmail,
+      clientPhone,
+      date: eventDate,
+      timeSlot: calculatedSlot,
+      duration,
+      packageType,
+      options: {
+        customOverlay,
+        redCarpet,
+        usbMedia,
+        ledLighting
+      },
+      totalPrice: calculatedTotalPrice,
+      promoCodeUsed: activePromo?.code || undefined,
+      discountApplied: discountApplied,
+      paymentStatus: 'pending',
+      amountPaid: 0,
+      paymentMethod: undefined,
+      status: 'confirmed',
+      createdAt: new Date().toISOString(),
+      prescripteurId: activePromo?.prescripteurId
+    };
+
+    onAddBooking(newBooking);
+    setGeneratedTicket(newBooking);
+    setCheckoutStep('success'); // skip mock scan / payment steps directly to the confirmation ticket screen
+    setShowCheckoutModal(true);
+    triggerAutoNotificationEmail(newBooking);
+  };
+
   // Launch checkout simulation
   const handleOpenCheckout = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,7 +222,8 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
         options: {
           customOverlay,
           redCarpet,
-          usbMedia
+          usbMedia,
+          ledLighting
         },
         totalPrice: 0,
         promoCodeUsed: undefined,
@@ -210,7 +268,8 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
         options: {
           customOverlay,
           redCarpet,
-          usbMedia
+          usbMedia,
+          ledLighting
         },
         totalPrice,
         promoCodeUsed: activePromo?.code,
@@ -244,7 +303,7 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
           email: booking.clientEmail || 'Non spécifié',
           telephone: booking.clientPhone
         },
-        details: `Date de l'événement : ${booking.date}\nCréneau : ${booking.timeSlot}\nAdresse/Quartier : ${dakarDistrict || 'Dakar, Sénégal'}\nFormule : ${booking.packageType.toUpperCase()}\nOptions :\n- Overlay personnalisé : ${booking.options.customOverlay ? 'Oui' : 'Non'}\n- Tapis rouge Prestige : ${booking.options.redCarpet ? 'Oui' : 'Non'}\n- Clé USB : ${booking.options.usbMedia ? 'Oui' : 'Non'}\nDurée : ${booking.duration} H`,
+        details: `Date de l'événement : ${booking.date}\nCréneau : ${booking.timeSlot}\nAdresse/Quartier : ${dakarDistrict || 'Dakar, Sénégal'}\nFormule : ${booking.packageType.toUpperCase()}\nOptions :\n- Cadre vidéo personnalisé : ${booking.options.customOverlay ? 'Oui' : 'Non'}\n- Tapis Rouge et Barrière VIP : ${booking.options.redCarpet ? 'Oui' : 'Non'}\n- Clé USB : ${booking.options.usbMedia ? 'Oui' : 'Non'}\n- Éclairage LED supplémentaire : ${booking.options.ledLighting ? 'Oui' : 'Non'}\nDurée : ${booking.duration} H\nCommentaire : ${customWishes.trim() || 'Aucun'}`,
         montant: isQuote ? undefined : `${booking.totalPrice.toLocaleString()} F CFA (Acompte payé: ${booking.amountPaid.toLocaleString()} F CFA)`
       };
 
@@ -484,7 +543,7 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
               : 'border-transparent text-gray-400 hover:text-gray-650'
           }`}
         >
-          📅 Réservation via Google Agenda
+          📅 Réservation
         </button>
         <button
           type="button"
@@ -499,37 +558,240 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
         </button>
       </div>
 
-      {/* RENDER VIEW 1: GOOGLE CALENDAR APPOINTMENT SCHEDULING */}
+      {/* RENDER VIEW 1: PREMIUM DIRECT RESERVATION FORM */}
       {bookingTab === 'calendar' && (
-        <div className="bg-white border border-gray-200 p-6 shadow-sm space-y-6">
-          <div className="max-w-2xl mx-auto text-center space-y-2">
-            <h4 className="font-display font-extrabold text-gray-950 text-xl">
-              Choisissez votre Date & Créneau Directement
-            </h4>
-            <p className="text-xs text-gray-500">
-              Sélectionnez ci-dessous l'heure idéale dans notre calendrier officiel Google Agenda pour bloquer votre événement RM Events à Dakar.
-            </p>
-          </div>
+        <form onSubmit={handleCalendarBookingSubmit} className="space-y-6">
+          <div className="bg-white border border-gray-200 p-6 shadow-sm space-y-6">
+            <div className="max-w-2xl mx-auto text-center space-y-2">
+              <h4 className="font-display font-extrabold text-gray-950 text-xl">
+                Réservation Directe de votre Créneau
+              </h4>
+              <p className="text-xs text-gray-500">
+                Planifiez votre prestation RM Event 360° en remplissant ce formulaire. Vous et l'équipe RM EVENT recevrez instantanément une confirmation de réservation officielle par e-mail.
+              </p>
+            </div>
 
-          <div className="border border-gray-200 overflow-hidden bg-white">
-            {/* Google Calendar Appointment Scheduling begin */}
-            <iframe 
-              src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ3z8rQYtZJ1chJzrzeSYyKJkHZXtieBEP0d9aN-9u6LEuKXuZYYeA5r2wR62jMiFyisv1oUovST?gv=true" 
-              style={{ border: 0 }} 
-              width="100%" 
-              height="600" 
-              frameBorder="0"
-              title="Google Calendar Appointment Scheduling"
-            ></iframe>
-            {/* end Google Calendar Appointment Scheduling */}
-          </div>
+            {/* Form grid layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-          <div className="bg-gold-500/5 p-4 border border-gold-500/10 text-center max-w-xl mx-auto">
-            <span className="text-xs text-gray-600 block">
-              💡 Besoin de configurer un devis sur-mesure ou de payer un acompte en quelques minutes ? Basculez sur l'onglet <strong>Devis & Acompte</strong> ci-dessus !
-            </span>
+              {/* Box 1: Client details */}
+              <div className="space-y-4 border-r border-gray-100 pr-0 md:pr-6">
+                <h5 className="font-display font-black text-gray-900 text-xs uppercase tracking-wider flex items-center space-x-2 border-b border-gray-100 pb-2">
+                  <User className="w-4 h-4 text-gold-500" />
+                  <span>1. Coordonnées de contact</span>
+                </h5>
+
+                <div>
+                  <label className="block text-[9px] font-extrabold text-gray-500 uppercase tracking-wider mb-1">Nom Complet / Entreprise</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                      <User className="w-3.5 h-3.5" />
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: Sokhna Diagne ou BDE Supdeco"
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      className="w-full bg-white border border-gray-250 rounded-none pl-9 pr-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-gold-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-extrabold text-gray-500 uppercase tracking-wider mb-1">E-mail de confirmation</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                      <Mail className="w-3.5 h-3.5" />
+                    </span>
+                    <input
+                      type="email"
+                      required
+                      placeholder="nom@exemple.com"
+                      value={clientEmail}
+                      onChange={(e) => setClientEmail(e.target.value)}
+                      className="w-full bg-white border border-gray-250 rounded-none pl-9 pr-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-gold-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-extrabold text-gray-500 uppercase tracking-wider mb-1">Téléphone (Sénégal)</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                      <Phone className="w-3.5 h-3.5" />
+                    </span>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="+221 77 976 20 75"
+                      value={clientPhone}
+                      onChange={(e) => setClientPhone(e.target.value)}
+                      className="w-full bg-white border border-gray-250 rounded-none pl-9 pr-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-gold-500 font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-extrabold text-gray-500 uppercase tracking-wider mb-1">Localité de la prestation (Dakar)</label>
+                  <select
+                    value={dakarDistrict}
+                    onChange={(e) => setDakarDistrict(e.target.value)}
+                    className="w-full bg-white border border-gray-250 rounded-none px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-gold-500 font-bold"
+                  >
+                    {neighborhoods.map((n) => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Box 2: Offer details */}
+              <div className="space-y-4">
+                <h5 className="font-display font-black text-gray-900 text-xs uppercase tracking-wider flex items-center space-x-2 border-b border-gray-100 pb-2">
+                  <Sparkles className="w-4 h-4 text-gold-500" />
+                  <span>2. Choix de la Formule & Date</span>
+                </h5>
+
+                <div>
+                  <label className="block text-[9px] font-extrabold text-gray-500 uppercase tracking-wider mb-1">Formule choisie</label>
+                  <select
+                    value={packageType}
+                    onChange={(e) => {
+                      const val = e.target.value as 'standard' | 'bronze' | 'argent' | 'prestige';
+                      setPackageType(val);
+                      if (val === 'standard') setDuration(1);
+                      else if (val === 'bronze') setDuration(2);
+                      else if (val === 'argent') setDuration(3);
+                      else if (val === 'prestige') setDuration(4);
+                    }}
+                    className="w-full bg-white border border-gray-250 rounded-none px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-gold-500 font-bold uppercase"
+                  >
+                    <option value="standard">Standard (1 Heure - 50.000 F)</option>
+                    <option value="bronze">Pack Bronze (2 Heures - 90.000 F)</option>
+                    <option value="argent">Pack Argent (3 Heures - 130.000 F)</option>
+                    <option value="prestige">Pack Prestige (4 Heures - 150.000 F)</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-extrabold text-gray-500 uppercase tracking-wider mb-1">Date Prestation</label>
+                    <input
+                      type="date"
+                      required
+                      value={eventDate}
+                      onChange={(e) => setEventDate(e.target.value)}
+                      className="w-full bg-white border border-gray-250 rounded-none px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-gold-500 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[9px] font-extrabold text-gray-500 uppercase tracking-wider mb-1">Heure de Début</label>
+                    <input
+                      type="time"
+                      required
+                      value={eventHour}
+                      onChange={(e) => setEventHour(e.target.value)}
+                      className="w-full bg-white border border-gray-250 rounded-none px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-gold-500 font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Comment Section & Options (Full width) */}
+            <div className="border-t border-gray-100 pt-4 space-y-4">
+              <h5 className="font-display font-black text-gray-900 text-xs uppercase tracking-wider flex items-center space-x-2">
+                <span>3. Options Additionnelles & Commentaire</span>
+              </h5>
+
+              {/* Core Options switches for luxury touch */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-gray-50 p-4 border border-gray-150">
+                <label className="flex items-center space-x-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={customOverlay}
+                    onChange={(e) => setCustomOverlay(e.target.checked)}
+                    className="accent-gold-500 h-4 w-4"
+                  />
+                  <div>
+                    <span className="block text-xs font-bold text-gray-900">Cadre vidéo personnalisé (+25k)</span>
+                    <span className="block text-[9px] text-gray-500">Logo & filtre de marque</span>
+                  </div>
+                </label>
+
+                <label className="flex items-center space-x-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={redCarpet}
+                    onChange={(e) => setRedCarpet(e.target.checked)}
+                    className="accent-gold-500 h-4 w-4"
+                  />
+                  <div>
+                    <span className="block text-xs font-bold text-gray-900">Tapis Rouge & Barrière VIP (+30k)</span>
+                    <span className="block text-[9px] text-gray-500">Décoration de prestige</span>
+                  </div>
+                </label>
+
+                <label className="flex items-center space-x-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={usbMedia}
+                    onChange={(e) => setUsbMedia(e.target.checked)}
+                    className="accent-gold-500 h-4 w-4"
+                  />
+                  <div>
+                    <span className="block text-xs font-bold text-gray-900">Clé USB (+10k)</span>
+                    <span className="block text-[9px] text-gray-500">Tous les rushs vidéos</span>
+                  </div>
+                </label>
+
+                <label className="flex items-center space-x-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={ledLighting}
+                    onChange={(e) => setLedLighting(e.target.checked)}
+                    className="accent-gold-500 h-4 w-4"
+                  />
+                  <div>
+                    <span className="block text-xs font-bold text-gray-900">Éclairage LED (+30k)</span>
+                    <span className="block text-[9px] text-gray-500">Luminosité de nuit pro</span>
+                  </div>
+                </label>
+              </div>
+
+              {/* Textarea comment */}
+              <div>
+                <label className="block text-[10px] font-extrabold text-gray-500 uppercase tracking-wider mb-1">Commentaire, détails de l'événement ou souhaits particuliers</label>
+                <textarea
+                  rows={3}
+                  placeholder="Ex: Soirée d'anniversaire au bord de la piscine, merci de prévoir des accessoires masques et chapeaux..."
+                  value={customWishes}
+                  onChange={(e) => setCustomWishes(e.target.value)}
+                  className="w-full bg-white border border-gray-250 rounded-none px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-gold-500"
+                />
+              </div>
+            </div>
+
+            {/* Price Recap overview in first tab */}
+            <div className="bg-gold-500/5 p-4 border border-gold-500/20 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+              <div className="text-left">
+                <span className="text-[10px] font-extrabold text-gold-600 block uppercase tracking-wider">Récapitulatif Estimé du Devis</span>
+                <span className="text-sm font-black text-gray-900">
+                  Formule {(packageType).toUpperCase()} ({(duration)}H) : {((BASE_PRICES[duration] || (150000 + (duration - 4) * 35000)) + extrasPrice).toLocaleString()} F CFA
+                </span>
+                <span className="text-[9px] text-gray-500 block mt-0.5">Note : Aucun acompte n'est requis à l'étape de réservation. Notre équipe validera votre créneau rapidement.</span>
+              </div>
+              <button
+                type="submit"
+                className="px-6 py-3 bg-gray-950 hover:bg-gold-500 hover:text-white text-gold-500 font-bold uppercase text-[10px] tracking-widest border border-gold-500/30 rounded-none transition-all duration-300"
+              >
+                Confirmer ma Réservation
+              </button>
+            </div>
           </div>
-        </div>
+        </form>
       )}
 
       {/* RENDER VIEW 2: CUSTOM DEVIS & SENEGALESE MOBILE MONEY INSTANT SIMULATION */}
@@ -675,8 +937,8 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
                         className="mt-1 accent-gold-500 rounded h-4 w-4"
                       />
                       <div>
-                        <span className="text-xs font-bold text-gray-900 block">Overlay Personnalisé Premium (+15.000 F)</span>
-                        <span className="text-[10px] text-gray-500 block mt-0.5">Integration de votre logo et d'effets visuels personnalisés.</span>
+                        <span className="text-xs font-bold text-gray-900 block">Cadre vidéo personnalisé (+25.000 F)</span>
+                        <span className="text-[10px] text-gray-500 block mt-0.5">Intégration de votre logo et d'effets visuels stylisés de marque ou thématiques.</span>
                       </div>
                     </div>
                   </label>
@@ -690,8 +952,8 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
                         className="mt-1 accent-gold-500 rounded h-4 w-4"
                       />
                       <div>
-                        <span className="text-xs font-bold text-gray-900 block">Tapis Rouge & Poteaux VIP (+25.000 F)</span>
-                        <span className="text-[10px] text-gray-500 block mt-0.5">Ambiance tapis rouge de festival et poteaux dorés de grand gala.</span>
+                        <span className="text-xs font-bold text-gray-900 block">Tapis Rouge et Barrière VIP (+30.000 F)</span>
+                        <span className="text-[10px] text-gray-500 block mt-0.5">Ambiance tapis rouge de festival de cinéma et barrières dorées de prestige.</span>
                       </div>
                     </div>
                   </label>
@@ -705,8 +967,23 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
                         className="mt-1 accent-gold-500 rounded h-4 w-4"
                       />
                       <div>
-                        <span className="text-xs font-bold text-gray-900 block">Clé USB Collector RM Events (+10.000 F)</span>
-                        <span className="text-[10px] text-gray-500 block mt-0.5">Récupérez toutes les vidéos 360° en Haute Définition brutes.</span>
+                        <span className="text-xs font-bold text-gray-900 block">Clé USB (+10.000 F)</span>
+                        <span className="text-[10px] text-gray-500 block mt-0.5">Récupérez toutes les captures vidéos 360° en Haute Définition brutes ou finalisées.</span>
+                      </div>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start justify-between p-3 rounded-none border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                    <div className="flex items-start space-x-3 pr-2">
+                      <input
+                        type="checkbox"
+                        checked={ledLighting}
+                        onChange={(e) => setLedLighting(e.target.checked)}
+                        className="mt-1 accent-gold-500 rounded h-4 w-4"
+                      />
+                      <div>
+                        <span className="text-xs font-bold text-gray-900 block">Éclairage LED supplémentaire (+30.000 F)</span>
+                        <span className="text-[10px] text-gray-500 block mt-0.5">Projecteurs et spots LED haut de gamme d'ambiance nocturne pro.</span>
                       </div>
                     </div>
                   </label>
@@ -812,22 +1089,29 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
 
                     {customOverlay && (
                       <div className="flex justify-between">
-                        <span>Option : Overlay Personnalisé</span>
-                        <span className="font-mono font-bold text-gold-600">+15.000 F</span>
+                        <span>Option : Cadre vidéo personnalisé</span>
+                        <span className="font-mono font-bold text-gold-600">+25.000 F</span>
                       </div>
                     )}
 
                     {redCarpet && (
                       <div className="flex justify-between">
-                        <span>Option : Tapis Rouge VIP</span>
-                        <span className="font-mono font-bold text-gold-600">+25.000 F</span>
+                        <span>Option : Tapis Rouge et Barrière VIP</span>
+                        <span className="font-mono font-bold text-gold-600">+30.000 F</span>
                       </div>
                     )}
 
                     {usbMedia && (
                       <div className="flex justify-between">
-                        <span>Option : Clé USB HD Colector</span>
+                        <span>Option : Clé USB</span>
                         <span className="font-mono font-bold text-gold-600">+10.000 F</span>
+                      </div>
+                    )}
+
+                    {ledLighting && (
+                      <div className="flex justify-between">
+                        <span>Option : Éclairage LED supplémentaire</span>
+                        <span className="font-mono font-bold text-gold-600">+30.000 F</span>
                       </div>
                     )}
 
