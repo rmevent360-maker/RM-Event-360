@@ -781,7 +781,7 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
                 type="submit"
                 className="w-full py-4 bg-gold-500 hover:bg-gold-600 text-white text-xs font-bold uppercase tracking-widest rounded-none transition-all duration-300 shadow-md cursor-pointer"
               >
-                {isCustomQuoteMode ? "Transmettre ma demande de devis" : "Paiement de l'acompte"}
+                {isCustomQuoteMode ? "Transmettre ma demande de devis" : "Procéder au Paiement"}
               </button>
 
             </form>
