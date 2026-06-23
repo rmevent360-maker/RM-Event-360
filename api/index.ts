@@ -38,7 +38,7 @@ const transporter = nodemailer.createTransport({
 // API endpoint for automatic notification mailing
 app.post('/api/valider-evenement', async (req: Request, res: Response) => {
   try {
-    const { type, id, client, details, montant } = req.body;
+    const { type, id, client, details, montant, paymentStatus } = req.body;
 
     if (!type || !id || !client || !details) {
       return res.status(400).json({ 
@@ -52,15 +52,23 @@ app.post('/api/valider-evenement', async (req: Request, res: Response) => {
     // 1. Call to Google AI Studio (Gemini) using gemini-3.5-flash
     if (GEMINI_API_KEY) {
       try {
-        const promptSystem = `Tu es un assistant de gestion d'événements. Rédige un e-mail de notification de validation de ${type} interne, clair, structuré et professionnel destiné à l'équipe de rmevent360@gmail.com.`;
+        const promptSystem = `Tu es un assistant de gestion d'événements de RM Event 360° Dakar. Rédige un e-mail de confirmation chaleureux, haut de gamme, clair et structuré de sa réservation destiné au client.`;
         const promptUtilisateur = `Voici les détails de la validation :
           - Type de transaction : ${type} (Devis ou Réservation)
+          - Statut du paiement : ${paymentStatus === 'pending' ? 'Sans paiement (En attente de confirmation)' : paymentStatus === 'deposit_only' ? 'Acompte de 50% reçu' : 'Paiement intégral de 100% reçu'}
           - Référence : ${id}
           - Client : ${client.nom} (${client.email}, ${client.telephone})
           - Détails de la prestation : ${details}
           - Montant total : ${montant ? montant : 'Non spécifié'}
           
-          Rédige un e-mail synthétique contenant un récapitulatif clair sous forme de liste à puces.`;
+          Instructions spécifiques de confirmation de réservation :
+          ${paymentStatus === 'pending' 
+            ? "Explique impérativement au client que son créneau a bien été réservé et bloqué avec succès dans notre planning officiel, qu'aucun paiement n'a été fait pour le moment, et que notre équipe commerciale à Dakar va rapidement le contacter par téléphone pour valider la logistique." 
+            : paymentStatus === 'deposit_only' 
+              ? "Confirme chaleureusement que nous avons bien reçu son acompte de 50%. Son événement photobooth 360° est officiellement validé, bloqué et programmé dans notre planning." 
+              : "Confirme et félicite chaleureusement le client pour son paiement intégral de 100%. Sa prestation haut de gamme est entièrement réglée et figée de manière définitive dans notre planning."}
+
+          Rédige un e-mail soigné contenant un mot chaleureux, un récapitulatif clair sous forme de liste à puces, et un message rassurant sur la logistique.`;
 
         const response = await ai.models.generateContent({
           model: 'gemini-3.5-flash',
@@ -73,10 +81,10 @@ app.post('/api/valider-evenement', async (req: Request, res: Response) => {
         emailContent = response.text || "";
       } catch (aiError) {
         console.error("Erreur avec l'API Gemini, génération du mail par défaut :", aiError);
-        emailContent = genererMailDeSecours(type, id, client, details, montant);
+        emailContent = genererMailDeSecours(type, id, client, details, montant, paymentStatus);
       }
     } else {
-      emailContent = genererMailDeSecours(type, id, client, details, montant);
+      emailContent = genererMailDeSecours(type, id, client, details, montant, paymentStatus);
     }
 
     // 2. Configuration du contenu du mail haut de gamme (style Reçu officiel pour le Client et RM Event)
@@ -86,7 +94,7 @@ app.post('/api/valider-evenement', async (req: Request, res: Response) => {
     }
 
     const isQuote = type.toLowerCase() === 'devis';
-    const htmlReceipt = genererHtmlRecu(type, id, client, details, montant);
+    const htmlReceipt = genererHtmlRecu(type, id, client, details, montant, paymentStatus);
 
     const mailOptions = {
       from: `"RM Event 360° Dakar" <${EMAIL_SENDER}>`,
@@ -181,13 +189,24 @@ async function startServer() {
   }
 }
 
-function genererMailDeSecours(type: string, id: string, client: any, details: string, montant: any) {
-  return `Bonjour,
+function genererMailDeSecours(type: string, id: string, client: any, details: string, montant: any, paymentStatus?: string) {
+  let confirmationText = "";
+  if (type.toLowerCase() === 'devis') {
+    confirmationText = "Demande de Devis reçue. Nos conseillers à Dakar analysent vos besoins pour vous envoyer le devis sous 24h.";
+  } else if (paymentStatus === 'pending') {
+    confirmationText = "Créneau réservé avec succès ! Votre créneau a été bloqué dans notre agenda officiel. Aucun paiement n'a été prélevé pour le moment. Un conseiller de notre équipe commerciale à Dakar vous contactera très rapidement par téléphone pour valider la logistique.";
+  } else if (paymentStatus === 'deposit_only') {
+    confirmationText = "Acompte de 50% reçu avec succès - Réservation validée ! Votre événement photobooth 360° est officiellement bloqué et programmé dans notre planning.";
+  } else {
+    confirmationText = "Paiement intégral de 100% validé ! Prestation photobooth de prestige entièrement réglée et figée de manière définitive dans notre planning.";
+  }
 
-Une nouvelle transaction a été validée sur la plateforme RM Event 360.
+  return `Bonjour ${client.nom},
+
+${confirmationText}
 
 --- Récapitulatif ---
-Type : ${type}
+Type : ${type.toUpperCase()}
 Référence : ${id}
 Montant : ${montant ? montant : 'Non spécifié'}
 
@@ -229,7 +248,7 @@ function extraireMontants(montantStr: string) {
   return { total, acompte, restants: soldeStr };
 }
 
-function genererHtmlRecu(type: string, id: string, client: any, details: string, montant: any) {
+function genererHtmlRecu(type: string, id: string, client: any, details: string, montant: any, paymentStatus?: string) {
   const isQuote = type.toLowerCase() === 'devis' || !montant;
   const montants = extraireMontants(montant || "");
   
@@ -247,8 +266,25 @@ function genererHtmlRecu(type: string, id: string, client: any, details: string,
     }
   }
 
-  const badgeColor = isQuote ? '#4b5563' : '#D4AF37';
-  const badgeText = isQuote ? 'DEMANDE DE DEVIS EXTRA-VIP REÇUE' : 'RÉSERVATION VALIDÉE - REÇU DE PAIEMENT';
+  let badgeColor = isQuote ? '#4b5563' : '#D4AF37';
+  let badgeText = isQuote ? 'DEMANDE DE DEVIS EXTRA-VIP REÇUE' : 'RÉSERVATION CONFIRMÉE';
+  let confirmationParagraph = "Merci pour votre intérêt. Cet e-mail est une archive officielle de votre commande.";
+  
+  if (!isQuote) {
+    if (paymentStatus === 'pending') {
+      badgeColor = '#d97706'; // Amber
+      badgeText = 'CRÉNEAU RÉSERVÉ - EN ATTENTE';
+      confirmationParagraph = "Félicitations ! Votre créneau de réservation a été bloqué avec succès dans notre agenda officiel de RM Event Dakar. Aucun paiement n'a été requis à cette étape. Un conseiller de l'équipe commerciale vous contactera très rapidement par téléphone pour valider tous les détails logistiques.";
+    } else if (paymentStatus === 'deposit_only') {
+      badgeColor = '#10B981'; // Emerald/Green
+      badgeText = 'ACOMPTE 50% REÇU - VALIDÉ';
+      confirmationParagraph = "Félicitations ! Nous avons bien reçu votre acompte de 50%. Votre réservation photobooth 360° de prestige à Dakar est officiellement validée, bloquée et programmée dans notre planning !";
+    } else if (paymentStatus === 'total') {
+      badgeColor = '#10B981'; // Emerald
+      badgeText = 'SOLDE 100% RÉGLÉ - GARANTI';
+      confirmationParagraph = "Félicitations ! Votre paiement intégral de 100% a été validé avec succès. Votre prestation haut de gamme RM Event est entièrement réglée et garantie de manière définitive.";
+    }
+  }
 
   return `
   <!DOCTYPE html>
@@ -421,8 +457,8 @@ function genererHtmlRecu(type: string, id: string, client: any, details: string,
         </div>
 
         <div class="content">
-          <p style="font-size: 13px; color: #9ca3af; margin-top: 0; margin-bottom: 20px; line-height: 1.5; text-align: center;">
-            Merci pour votre commande. Cet e-mail est une archive officielle faisant foi de recu pour votre prestation RM Event.
+          <p style="font-size: 13px; color: #9ca3af; margin-top: 0; margin-bottom: 20px; line-height: 1.6; text-align: center; padding: 0 10px;">
+            ${confirmationParagraph}
           </p>
 
           <div class="receipt-card">
@@ -480,18 +516,24 @@ function genererHtmlRecu(type: string, id: string, client: any, details: string,
           ${!isQuote ? `
             <div class="receipt-card">
               <h2 class="section-title">Bilan des Règlements</h2>
-              <div class="financial-grid">
+              <div class="financial-grid" style="background-color: ${paymentStatus === 'pending' ? '#1c1c1c' : '#181c18'}; border: 1px solid ${paymentStatus === 'pending' ? '#333' : '#233e21'};">
                 <div class="financial-row">
                   <span class="financial-label">Montant Total Prestation :</span>
                   <span class="financial-value">${montants.total}</span>
                 </div>
                 <div class="financial-row">
-                  <span class="financial-label" style="color: #10B981;">Acompte d'Engagement Payé :</span>
-                  <span class="financial-value" style="color: #10B981;">${montants.acompte}</span>
+                  <span class="financial-label" style="color: ${paymentStatus === 'pending' ? '#9cb3af' : '#10B981'};">
+                    ${paymentStatus === 'pending' ? 'Versement Effectué :' : paymentStatus === 'total' ? 'Paiement Effectué (100%) :' : "Acompte d'Engagement Payé (50%) :"}
+                  </span>
+                  <span class="financial-value" style="color: ${paymentStatus === 'pending' ? '#9cb3af' : '#10B981'};">
+                    ${paymentStatus === 'pending' ? '0 F CFA' : montants.acompte}
+                  </span>
                 </div>
-                <div class="financial-row" style="border-top: 1px dashed #233e21; margin-top: 6px; padding-top: 6px;">
-                  <span class="financial-label">Solde Restant à Régler :</span>
-                  <span class="financial-value total-highlight">${montants.restants}</span>
+                <div class="financial-row" style="border-top: 1px dashed ${paymentStatus === 'pending' ? '#333' : '#233e21'}; margin-top: 6px; padding-top: 6px;">
+                  <span class="financial-label">${paymentStatus === 'pending' ? 'Montant à Régler :' : 'Solde Restant à Régler sur Place :'}</span>
+                  <span class="financial-value total-highlight" style="color: ${paymentStatus === 'pending' ? '#d97706' : '#D4AF37'};">
+                    ${paymentStatus === 'pending' ? montants.total : paymentStatus === 'total' ? '0 F CFA (Réglé)' : montants.restants}
+                  </span>
                 </div>
               </div>
             </div>

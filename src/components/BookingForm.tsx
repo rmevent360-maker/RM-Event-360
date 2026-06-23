@@ -298,6 +298,7 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
       const payload = {
         type: type,
         id: booking.id,
+        paymentStatus: booking.paymentStatus,
         client: {
           nom: booking.clientName,
           email: booking.clientEmail || 'Non spécifié',
@@ -457,7 +458,7 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
       doc.setFillColor(248, 250, 252); // slate-50 background
       doc.setDrawColor(212, 175, 55); // Gold border
       doc.setLineWidth(0.3);
-      doc.rect(20, y, pageWidth - 40, isQuote ? 28 : 38, 'FD');
+      doc.rect(20, y, pageWidth - 40, isQuote ? 28 : 58, 'FD');
 
       y += 8;
       if (isQuote) {
@@ -484,23 +485,81 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
         const totalStr = `${generatedTicket.totalPrice.toLocaleString()} F CFA`;
         doc.text(totalStr, pageWidth - 25 - doc.getTextWidth(totalStr), y);
 
-        // Acompte payé
+        // Payment details according to payment status
+        let paidLabel = "Acompte Réglé pour Réservation";
+        let paidValueStr = `- ${generatedTicket.amountPaid.toLocaleString()} F CFA`;
+        let paidColor = [16, 185, 129]; // emerald-500
+        
+        let remainsLabel = "SOLDE À RÉGLER SUR PLACE";
+        let remainsValueStr = `${(generatedTicket.totalPrice - generatedTicket.amountPaid).toLocaleString()} F CFA`;
+        let remainsColor = [220, 38, 38]; // red-600
+
+        if (generatedTicket.paymentStatus === 'pending') {
+          paidLabel = "Versement Reçu (Sans Paiement)";
+          paidValueStr = "0 F CFA";
+          paidColor = [100, 116, 139]; // slate-500
+          
+          remainsLabel = "MONTANT À RÉGLER SUR PLACE";
+          remainsValueStr = `${generatedTicket.totalPrice.toLocaleString()} F CFA`;
+          remainsColor = [217, 119, 6]; // amber-600
+        } else if (generatedTicket.paymentStatus === 'total') {
+          paidLabel = "Paiement Effectué (100% Intégral)";
+          paidValueStr = `- ${generatedTicket.amountPaid.toLocaleString()} F CFA`;
+          paidColor = [16, 185, 129]; // emerald-500
+          
+          remainsLabel = "SOLDE RESTANT À RÉGLER";
+          remainsValueStr = "0 F CFA (Réglé)";
+          remainsColor = [16, 185, 129]; // emerald-500
+        }
+
+        // Row 2: Paid
         y += 7;
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(16, 185, 129); // Emerald-500
-        doc.text("Acompte Réglé pour Réservation", 25, y);
+        doc.setTextColor(paidColor[0], paidColor[1], paidColor[2]);
+        doc.text(paidLabel, 25, y);
         doc.setFont('helvetica', 'bold');
-        const paidStr = `- ${generatedTicket.amountPaid.toLocaleString()} F CFA`;
-        doc.text(paidStr, pageWidth - 25 - doc.getTextWidth(paidStr), y);
+        doc.text(paidValueStr, pageWidth - 25 - doc.getTextWidth(paidValueStr), y);
 
-        // Reste à payer
+        // Row 3: Remains
         y += 7;
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(220, 38, 38); // Red-600
-        doc.text("SOLDE À RÉGLER SUR PLACE", 25, y);
+        doc.setTextColor(remainsColor[0], remainsColor[1], remainsColor[2]);
+        doc.text(remainsLabel, 25, y);
         doc.setFont('helvetica', 'bold');
-        const remainsStr = `${(generatedTicket.totalPrice - generatedTicket.amountPaid).toLocaleString()} F CFA`;
-        doc.text(remainsStr, pageWidth - 25 - doc.getTextWidth(remainsStr), y);
+        doc.text(remainsValueStr, pageWidth - 25 - doc.getTextWidth(remainsValueStr), y);
+
+        // Dash separator inside the box
+        y += 4;
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.2);
+        doc.line(25, y, pageWidth - 25, y);
+
+        // Row 4: Status confirmation text
+        y += 5;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(30, 41, 59);
+        doc.text("Statut & Confirmation officielle :", 25, y);
+
+        y += 4.5;
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(8);
+        doc.setTextColor(71, 85, 105);
+        
+        let confirmationText = "";
+        if (generatedTicket.paymentStatus === 'pending') {
+          confirmationText = "Créneau réservé avec succès ! Votre prestation est bloquée dans notre planning. Aucun paiement n'a été effectué pour le moment. Notre équipe vous contactera rapidement par téléphone.";
+        } else if (generatedTicket.paymentStatus === 'deposit_only') {
+          confirmationText = "Acompte de 50% reçu avec succès - Réservation validée ! Votre événement photobooth 360° est officiellement programmé dans notre planning.";
+        } else {
+          confirmationText = "Paiement intégral de 100% validé ! Prestation photobooth de prestige entièrement réglée et figée de manière définitive dans notre planning.";
+        }
+        
+        const splitText = doc.splitTextToSize(confirmationText, pageWidth - 50);
+        doc.text(splitText, 25, y);
+        
+        // Adjust coordinate offset to keep final spacing perfect
+        y += (splitText.length > 1 ? 6 : 2);
       }
 
       // Final note
@@ -1347,12 +1406,22 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
 
                 <div className="space-y-1">
                   <h5 className="font-display font-extrabold text-gray-900 text-base">
-                    {isCustomQuoteMode ? "Demande de Devis Envoyée !" : "Réservation Confirmée !"}
+                    {isCustomQuoteMode 
+                      ? "Demande de Devis Envoyée !" 
+                      : generatedTicket.paymentStatus === 'pending'
+                        ? "Créneau Réservé avec Succès !"
+                        : generatedTicket.paymentStatus === 'deposit_only'
+                          ? "Acompte Reçu - Réservation Validée !"
+                          : "Paiement Intégral Reçu - Réservation Garantie !"}
                   </h5>
                   <p className="text-xs text-gray-500">
                     {isCustomQuoteMode 
-                      ? "Nos conseillers analysent vos besoins particuliers." 
-                      : "Votre versement a été validé avec succès."}
+                      ? "Nos conseillers à Dakar analysent vos besoins pour vous envoyer le devis sous 24h." 
+                      : generatedTicket.paymentStatus === 'pending'
+                        ? "Votre créneau a été bloqué dans notre agenda. Aucun paiement n'a été effectué pour le moment. Notre équipe vous contactera."
+                        : generatedTicket.paymentStatus === 'deposit_only'
+                          ? "Nous avons bien reçu votre acompte de 50%. Votre événement 360° est officiellement bloqué et programmé !"
+                          : "Votre paiement de 100% a été validé. Votre prestation photobooth est entièrement réglée et fégée dans notre planning."}
                   </p>
                 </div>
 
@@ -1360,8 +1429,14 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
                 <div id="invoice-bill-element" className="bg-gray-50 border border-gray-200 rounded-none p-5 text-left text-xs space-y-3.5 relative overflow-hidden">
                   
                   {/* Decorative stamp */}
-                  <div className="absolute -top-3 -right-3 w-16 h-16 border-4 border-dashed border-gold-500/25 rounded-full flex items-center justify-center rotate-12 text-[7px] text-gold-500 font-extrabold select-none">
-                    {isCustomQuoteMode ? "DEVIS RM" : "PAYÉ DAKAR"}
+                  <div className="absolute -top-3 -right-3 w-20 h-20 border-4 border-dashed border-gold-500/25 rounded-full flex items-center justify-center rotate-12 text-[7.5px] text-gold-500 font-extrabold select-none text-center leading-tight">
+                    {isCustomQuoteMode 
+                      ? "DEVIS RM" 
+                      : generatedTicket.paymentStatus === 'pending'
+                        ? "RÉSERVÉ"
+                        : generatedTicket.paymentStatus === 'deposit_only'
+                          ? "ACOMPTE PAYÉ"
+                          : "SOLDE RÉGLÉ"}
                   </div>
 
                   <div className="border-b border-gray-200 pb-2.5">
@@ -1390,15 +1465,29 @@ export default function BookingForm({ selectedPackageId, onAddBooking }: Booking
                         Un conseiller RM EVENTS de Dakar vous contactera pour valider l'overlay et valider les détails logistiques.
                       </p>
                     </div>
+                  ) : generatedTicket.paymentStatus === 'pending' ? (
+                    <div className="pt-2.5 border-t border-dashed border-gray-200 space-y-1 text-gray-550">
+                      <div className="flex justify-between text-gray-500">
+                        <span>Montant total estimé :</span>
+                        <strong className="text-gray-900 font-mono">{(generatedTicket.totalPrice).toLocaleString()} F</strong>
+                      </div>
+                      <div className="flex justify-between font-bold text-amber-600 bg-amber-50/70 p-2 border border-amber-100 mt-1">
+                        <span>Statut paiement :</span>
+                        <span>Sans Paiement (En Attente)</span>
+                      </div>
+                      <p className="text-[10px] text-gray-550 italic mt-1 font-sans">
+                        Aucun versement n'a été prélevé. Notre équipe vous contactera sous peu pour finaliser la logistique.
+                      </p>
+                    </div>
                   ) : (
                     <>
-                      <div className="pt-2.5 border-t border-dashed border-gray-200 flex justify-between text-gray-500">
-                        <span>Acompte réglé :</span>
+                      <div className="pt-2.5 border-t border-dashed border-gray-200 flex justify-between text-gray-550">
+                        <span>Versement reçu ({generatedTicket.paymentStatus === 'deposit_only' ? 'Acompte 50%' : 'Total 100%'}) :</span>
                         <strong className="text-gray-900 font-mono">{(generatedTicket.amountPaid).toLocaleString()} F</strong>
                       </div>
                       
                       <div className="flex justify-between font-bold text-gold-600">
-                        <span>Solde à payer sur place :</span>
+                        <span>Solde à régler sur place :</span>
                         <strong className="font-mono">{(generatedTicket.totalPrice - generatedTicket.amountPaid).toLocaleString()} F</strong>
                       </div>
                     </>
