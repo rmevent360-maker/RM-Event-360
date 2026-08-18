@@ -29,8 +29,14 @@ export default function Hero({ setCurrentTab }: HeroProps) {
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
               <button
+                onClick={() => setCurrentTab('catalogue')}
+                className="w-full sm:w-auto px-7 py-3.5 bg-gray-900 hover:bg-black text-white font-bold text-xs uppercase tracking-widest rounded-none shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer border border-gray-800"
+              >
+                📖 Feuilleter le Catalogue
+              </button>
+              <button
                 onClick={() => setCurrentTab('booking')}
-                className="w-full sm:w-auto px-8 py-3.5 bg-gold-500 text-white font-black text-xs uppercase tracking-widest rounded-none shadow-lg hover:bg-gold-600 hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer"
+                className="w-full sm:w-auto px-7 py-3.5 bg-gold-500 text-white font-black text-xs uppercase tracking-widest rounded-none shadow-lg hover:bg-gold-600 hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer"
               >
                 Réserver en ligne
               </button>

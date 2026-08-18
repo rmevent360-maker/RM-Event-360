@@ -12,7 +12,7 @@ export default function Header({ currentTab, setCurrentTab }: HeaderProps) {
 
   const navItems = [
     { id: 'accueil', label: 'Notre Concept' },
-    { id: 'offres', label: 'Nos Offres' },
+    { id: 'catalogue', label: 'Catalogue' },
     { id: 'booking', label: 'Réserver En Ligne' },
   ];
 

@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
-import Sectors from './components/Sectors';
 import BookingForm from './components/BookingForm';
+import EbookCatalog from './components/EbookCatalog';
 import Footer from './components/Footer';
-import { MessageCircle, Instagram } from 'lucide-react';
-
-// Icons for the main navigation summary
-import { QrCode, Building, Star, GraduationCap, ChevronRight, HelpCircle, Check, Award, Calculator } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 
 import {
   INITIAL_BOOKINGS,
@@ -15,14 +12,11 @@ import {
   INITIAL_PARTNERS,
   INITIAL_PARTNER_ACTIVITIES,
   INITIAL_PAYOUT_REQUESTS,
-  BASE_PRICES,
-  PACKAGES,
 } from './data';
 import { Booking, PromoCode, PartnerAccount, PartnerActivity, PayoutRequest } from './types';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('accueil');
-  const [selectedPackageId, setSelectedPackageId] = useState<'standard' | 'bronze' | 'argent' | 'prestige'>('argent');
 
   // Unified Reactive Databases in local state to allow cross-system reactivity
   const [bookings, setBookings] = useState<Booking[]>(INITIAL_BOOKINGS);
@@ -142,19 +136,17 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW: SECTORS */}
-        {currentTab === 'offres' && (
-          <Sectors 
-            setCurrentTab={setCurrentTab} 
-            setSelectedPackage={setSelectedPackageId} 
-          />
+        {/* VIEW: EBOOK CATALOGUE */}
+        {currentTab === 'catalogue' && (
+          <div className="bg-gray-50 min-h-[85vh]">
+            <EbookCatalog setCurrentTab={setCurrentTab} />
+          </div>
         )}
 
         {/* VIEW: TRANSACTIONNAL BOOKING FORM */}
         {currentTab === 'booking' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
             <BookingForm 
-              selectedPackageId={selectedPackageId} 
               onAddBooking={handleAddBooking} 
             />
           </div>

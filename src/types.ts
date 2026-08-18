@@ -10,13 +10,14 @@ export interface Booking {
   clientPhone: string;
   date: string;
   timeSlot: string; // e.g. "15:00 - 17:00"
-  duration: number; // 1, 2, 3, 4 hours
-  packageType: 'standard' | 'bronze' | 'argent' | 'prestige';
+  duration: number | string; // e.g. "Maximum 3h", "La demi Journée", "Toute la soirée", "Toute la Journée"
+  packageType?: 'standard' | 'bronze' | 'argent' | 'prestige' | string;
   options: {
-    customOverlay: boolean;
-    redCarpet: boolean;
-    usbMedia: boolean;
-    ledLighting?: boolean;
+    photobooth360?: boolean;
+    reflexeGame?: boolean;
+    lyreScene?: boolean;
+    projecteurLed?: boolean;
+    poteletsDores?: boolean;
   };
   totalPrice: number;
   promoCodeUsed?: string;

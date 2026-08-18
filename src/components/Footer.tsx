@@ -60,8 +60,8 @@ export default function Footer({ setCurrentTab }: FooterProps) {
                 </button>
               </li>
               <li>
-                <button onClick={() => setCurrentTab('offres')} className="hover:text-gold-500 transition-colors">
-                  Offres & Tarifs
+                <button onClick={() => setCurrentTab('catalogue')} className="hover:text-gold-500 transition-colors">
+                  Catalogue
                 </button>
               </li>
               <li>

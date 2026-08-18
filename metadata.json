@@ -1,6 +1,6 @@
 {
   "name": "RM EVENT 360",
-  "description": "Plateforme d'événementiel et de réservation de photobooth 360° à Dakar, présentant nos offres Cinéma, Corporate, Particuliers et Éducation.",
+  "description": "Plateforme événementielle RM Events à Dakar : réservation de photobooth 360° et catalogue interactif de matériel audiovisuel, jeux et éclairage VIP.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

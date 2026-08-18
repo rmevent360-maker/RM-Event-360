@@ -98,29 +98,35 @@ export const PACKAGES: PackageDetail[] = [
 
 export const EXTRA_OPTIONS = [
   {
-    id: 'customOverlay',
-    name: 'Cadre vidéo personnalisé',
-    description: 'Incrustation de logo d\'entreprise, bordures de marque ou bande-son thématique.',
+    id: 'photobooth360',
+    name: 'Photobooth 360°',
+    description: 'Plateforme rotative automatique avec anneau LED et partage vidéo instantané.',
+    price: 50000,
+  },
+  {
+    id: 'reflexeGame',
+    name: 'Jeu de Réflexe (Catching Stick Game)',
+    description: 'Borne interactive de réflexe avec bâtons tombants et compteur digital.',
+    price: 40000,
+  },
+  {
+    id: 'lyreScene',
+    name: 'Lyre de Scène (Moving Head Beam)',
+    description: 'Projecteur asservi motorisé à balayage rapide et effets de lumière de scène.',
+    price: 35000,
+  },
+  {
+    id: 'projecteurLed',
+    name: 'Projecteur LED sur Trépied',
+    description: 'Panneau LED professionnel avec volets coupe-flux sur trépied télescopique.',
+    price: 30000,
+  },
+  {
+    id: 'poteletsDores',
+    name: 'Potelets Dorés avec Cordon Rouge',
+    description: 'Potelets de guidage dorés miroir VIP avec cordons en velours rouge de prestige.',
     price: 25000,
   },
-  {
-    id: 'redCarpet',
-    name: 'Tapis Rouge et Barrière VIP',
-    description: 'Installation d\'un véritable tapis de gala avec cordons de velours de prestige.',
-    price: 30000,
-  },
-  {
-    id: 'usbMedia',
-    name: 'Clé USB',
-    description: 'Remise directe de tous les rushs originaux bruts et vidéos finales de la soirée.',
-    price: 10000,
-  },
-  {
-    id: 'ledLighting',
-    name: 'Éclairage LED supplémentaire',
-    description: 'Projecteurs LED d\'ambiance et éclairages pros additionnels pour illuminer l\'espace.',
-    price: 30000,
-  }
 ];
 
 // Seed Data for initial application state!
@@ -276,11 +282,11 @@ export const INITIAL_BOOKINGS: Booking[] = [
     duration: 3,
     packageType: 'argent',
     options: {
-      customOverlay: true,
-      redCarpet: true,
-      usbMedia: false
+      photobooth360: true,
+      poteletsDores: true,
+      reflexeGame: false
     },
-    totalPrice: 170000, // 130000 + 15000 + 25000
+    totalPrice: 170000,
     promoCodeUsed: 'WEDDING2026',
     discountApplied: 8500, // 5% of 170000
     paymentStatus: 'deposit_only',
@@ -300,11 +306,11 @@ export const INITIAL_BOOKINGS: Booking[] = [
     duration: 4,
     packageType: 'prestige',
     options: {
-      customOverlay: true,
-      redCarpet: true,
-      usbMedia: true
+      photobooth360: true,
+      reflexeGame: true,
+      poteletsDores: true
     },
-    totalPrice: 200000, // 150000 + 15000 (overlay in list has price index but package standard has some. wait, let's look: 150000 base + 15k overlay + 25k carpet + 10k usb = 200000)
+    totalPrice: 200000,
     promoCodeUsed: 'DAKAR360',
     discountApplied: 20000, // 10%
     paymentStatus: 'total',
@@ -324,9 +330,9 @@ export const INITIAL_BOOKINGS: Booking[] = [
     duration: 2,
     packageType: 'bronze',
     options: {
-      customOverlay: false,
-      redCarpet: false,
-      usbMedia: true
+      photobooth360: false,
+      reflexeGame: false,
+      poteletsDores: true
     },
     totalPrice: 100000, // 90000 + 10000
     promoCodeUsed: 'GALA_STUDI',
