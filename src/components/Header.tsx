@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
 import { Camera, Calendar, Users, Award, ShieldAlert, KeyRound, Menu, X, Instagram, MessageCircle } from 'lucide-react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import rmEventsLogo from '../assets/images/rm_events_logo_1781896594927.jpg';
 
-interface HeaderProps {
-  currentTab: string;
-  setCurrentTab: (tab: string) => void;
-}
-
-export default function Header({ currentTab, setCurrentTab }: HeaderProps) {
+export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   const navItems = [
-    { id: 'accueil', label: 'Notre Concept' },
-    { id: 'catalogue', label: 'Catalogue' },
-    { id: 'booking', label: 'Simuler un devis' },
+    { path: '/', label: 'Accueil' },
+    { path: '/notre-concept', label: 'Notre Concept' },
+    { path: '/catalogue', label: 'Catalogue' },
+    { path: '/simulation', label: 'Simuler un devis' },
   ];
 
   return (
@@ -22,8 +20,8 @@ export default function Header({ currentTab, setCurrentTab }: HeaderProps) {
         <div className="flex items-center justify-between h-20">
           
           {/* Logo Brand matching image_e0cc99.jpg aesthetic */}
-          <div 
-            onClick={() => setCurrentTab('accueil')}
+          <Link 
+            to="/"
             className="flex items-center space-x-3 cursor-pointer group"
           >
             {/* Custom high-quality logo branding from image attachment */}
@@ -44,22 +42,22 @@ export default function Header({ currentTab, setCurrentTab }: HeaderProps) {
                 Photobooth 360° Dakar
               </span>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-1 sm:space-x-4">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setCurrentTab(item.id)}
-                className={`px-3.5 py-2 rounded-none font-sans text-xs sm:text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
-                  currentTab === item.id
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) => `px-3.5 py-2 rounded-none font-sans text-xs sm:text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
+                  isActive
                     ? 'text-gold-500 bg-gold-500/5 border-b-2 border-gold-500'
                     : 'text-gray-600 hover:text-gold-500 hover:bg-gray-50'
                 }`}
               >
                 {item.label}
-              </button>
+              </NavLink>
             ))}
           </nav>
 
@@ -83,23 +81,19 @@ export default function Header({ currentTab, setCurrentTab }: HeaderProps) {
         <div className="md:hidden bg-white border-b border-gray-150 shadow-2xl animate-fadeIn">
           <div className="px-2 pt-2 pb-4 space-y-1 sm:px-3">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setCurrentTab(item.id);
-                  setMobileMenuOpen(false);
-                }}
-                className={`block w-full text-left px-4 py-3 rounded-none text-sm font-bold tracking-wide uppercase ${
-                  currentTab === item.id
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) => `block w-full text-left px-4 py-3 rounded-none text-sm font-bold tracking-wide uppercase ${
+                  isActive
                     ? 'text-gold-500 bg-gold-500/5 border-l-4 border-gold-500'
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 {item.label}
-              </button>
+              </NavLink>
             ))}
-            
-              {/* Mobile bottom callouts removed per user request */}
           </div>
         </div>
       )}

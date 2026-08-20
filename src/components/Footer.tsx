@@ -1,11 +1,8 @@
 import React from 'react';
 import { Camera, Mail, Phone, MapPin, Instagram, MessageCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-interface FooterProps {
-  setCurrentTab: (tab: string) => void;
-}
-
-export default function Footer({ setCurrentTab }: FooterProps) {
+export default function Footer() {
   return (
     <footer id="footer" className="bg-gray-50 text-gray-600 border-t border-gray-200 pt-10 pb-8 mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,19 +31,19 @@ export default function Footer({ setCurrentTab }: FooterProps) {
             </h4>
             <ul className="space-y-1.5 text-xs text-gray-500">
               <li>
-                <button onClick={() => setCurrentTab('accueil')} className="hover:text-gold-500 transition-colors">
+                <Link to="/notre-concept" className="hover:text-gold-500 transition-colors">
                   Concept 360°
-                </button>
+                </Link>
               </li>
               <li>
-                <button onClick={() => setCurrentTab('catalogue')} className="hover:text-gold-500 transition-colors">
+                <Link to="/catalogue" className="hover:text-gold-500 transition-colors">
                   Catalogue
-                </button>
+                </Link>
               </li>
               <li>
-                <button onClick={() => setCurrentTab('booking')} className="hover:text-gold-500 transition-colors">
+                <Link to="/simulation" className="hover:text-gold-500 transition-colors">
                   Réservation
-                </button>
+                </Link>
               </li>
             </ul>
           </div>
@@ -93,11 +90,11 @@ export default function Footer({ setCurrentTab }: FooterProps) {
                 <Instagram className="w-5 h-5" />
               </a>
               <a 
-                href="https://www.tiktok.com/@rmevent_360" 
+                href="https://www.tiktok.com/@rm.events23" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="text-gray-400 hover:text-[#000000] transition-all duration-200 transform hover:scale-110" 
-                title="TikTok @rmevent_360"
+                title="TikTok @rm.events23"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                   <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>

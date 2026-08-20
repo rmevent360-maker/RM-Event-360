@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import BookingForm from './components/BookingForm';
@@ -16,8 +17,16 @@ import {
 import { Booking, PromoCode, PartnerAccount, PartnerActivity, PayoutRequest } from './types';
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<string>('accueil');
+  const navigate = useNavigate();
+  const location = useLocation();
   const [preselectedItem, setPreselectedItem] = useState<string | null>(null);
+
+  // Hash redirect for legacy or anchor links
+  useEffect(() => {
+    if (location.hash === '#simulateur') {
+      navigate('/simulation', { replace: true });
+    }
+  }, [location, navigate]);
 
   // Unified Reactive Databases in local state to allow cross-system reactivity
   const [bookings, setBookings] = useState<Booking[]>(INITIAL_BOOKINGS);
@@ -92,72 +101,88 @@ export default function App() {
     }
   };
 
+  const handleStartBooking = (item?: string | null) => {
+    setPreselectedItem(item || null);
+    navigate('/simulation');
+  };
+
   return (
     <div className="min-h-screen bg-white text-gray-800 flex flex-col justify-between selection:bg-gold-500 selection:text-white">
       
       {/* 1. Brand Header */}
-      <Header 
-        currentTab={currentTab} 
-        setCurrentTab={setCurrentTab} 
-      />
+      <Header />
 
       {/* 2. Primary viewport renderer */}
       <main className="flex-grow">
-        
-        {/* VIEW: ACCUEIL */}
-        {currentTab === 'accueil' && (
-          <div className="space-y-0">
-            {/* Hero Banner Component */}
-            <Hero setCurrentTab={setCurrentTab} />
-
-            {/* Quick FAQ / Dakar focus sector */}
-            <section className="py-16 bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="bg-gray-50 rounded-3xl p-8 sm:p-12 border border-gray-100 text-center sm:text-left">
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-8 items-center">
-                  <div className="sm:col-span-8 space-y-4">
-                    <h5 className="text-gold-500 text-xs font-bold uppercase tracking-widest">Questions Fr&eacute;quentes</h5>
-                    <h4 className="font-display font-black text-gray-900 text-xl sm:text-2xl">
-                      Comment se passe l'installation de la Borne 360° ?
-                    </h4>
-                    <p className="text-xs sm:text-sm text-gray-600">
-                      Notre &eacute;quipe s'occupe de tout : livraison, montage des &eacute;clairages LED, tapis rouge, et animation complète du stand d&egrave;s 1h30 avant votre &eacute;v&eacute;nement.
-                    </p>
-                  </div>
-                  <div className="sm:col-span-4 flex justify-center sm:justify-end">
-                    <button
-                      onClick={() => setCurrentTab('booking')}
-                      className="px-6 py-3.5 bg-gold-500 text-white hover:bg-gold-600 text-xs font-bold uppercase tracking-widest rounded-none transition-all hover:scale-105 shadow-md"
-                    >
-                      R&eacute;server Maintenant
-                    </button>
+        <Routes>
+          <Route path="/" element={
+            <div className="space-y-0">
+              <Hero onStartBooking={() => navigate('/simulation')} />
+              <section className="py-16 bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="bg-gray-50 rounded-3xl p-8 sm:p-12 border border-gray-100 text-center sm:text-left">
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-8 items-center">
+                    <div className="sm:col-span-8 space-y-4">
+                      <h5 className="text-gold-500 text-xs font-bold uppercase tracking-widest">Questions Fr&eacute;quentes</h5>
+                      <h4 className="font-display font-black text-gray-900 text-xl sm:text-2xl">
+                        Comment se passe l'installation de la Borne 360° ?
+                      </h4>
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        Notre &eacute;quipe s'occupe de tout : livraison, montage des &eacute;clairages LED, tapis rouge, et animation complète du stand d&egrave;s 1h30 avant votre &eacute;v&eacute;nement.
+                      </p>
+                    </div>
+                    <div className="sm:col-span-4 flex justify-center sm:justify-end">
+                      <button
+                        onClick={() => navigate('/simulation')}
+                        className="px-6 py-3.5 bg-gold-500 text-white hover:bg-gold-600 text-xs font-bold uppercase tracking-widest rounded-none transition-all hover:scale-105 shadow-md"
+                      >
+                        R&eacute;server Maintenant
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </section>
-          </div>
-        )}
+              </section>
+            </div>
+          } />
+          
+          <Route path="/notre-concept" element={
+            <div className="space-y-0">
+              <Hero onStartBooking={() => navigate('/simulation')} />
+            </div>
+          } />
 
-        {/* VIEW: EBOOK CATALOGUE */}
-        {currentTab === 'catalogue' && (
-          <div className="bg-white min-h-[85vh]">
-            <EbookCatalog onStartBooking={(item) => { setPreselectedItem(item || null); setCurrentTab('booking'); }} />
-          </div>
-        )}
+          <Route path="/catalogue" element={
+            <div className="bg-white min-h-[85vh]">
+              <EbookCatalog onStartBooking={handleStartBooking} />
+            </div>
+          } />
 
-        {/* VIEW: TRANSACTIONNAL BOOKING FORM */}
-        {currentTab === 'booking' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-            <BookingForm 
-              onAddBooking={handleAddBooking} 
-              preselectedItem={preselectedItem}
-            />
-          </div>
-        )}
+          <Route path="/simulation" element={
+            <div id="simulateur" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+              <BookingForm 
+                onAddBooking={handleAddBooking} 
+                preselectedItem={preselectedItem}
+              />
+            </div>
+          } />
 
+          {/* Catch-all 404 Route */}
+          <Route path="*" element={
+            <div className="min-h-[50vh] flex flex-col items-center justify-center space-y-4">
+              <h1 className="text-4xl font-black text-gray-900">404</h1>
+              <p className="text-gray-600 text-lg">Cette page n'existe pas.</p>
+              <button 
+                onClick={() => navigate('/')} 
+                className="mt-6 px-6 py-3 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-gold-500 transition-colors"
+              >
+                Retour à l'accueil
+              </button>
+            </div>
+          } />
+        </Routes>
       </main>
 
       {/* 3. Footer */}
-      <Footer setCurrentTab={setCurrentTab} />
+      <Footer />
 
       {/* Floating Interactive WhatsApp Chat Widget */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end space-y-2 group" id="whatsapp-floating-bubble">

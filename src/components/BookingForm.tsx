@@ -109,7 +109,7 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
       total += isLong ? 200000 : 120000;
     }
     
-    total += qtyLyre * 150000;
+    total += qtyLyre * 100000;
     total += qtyProjecteur * (isLong ? 15000 : 10000);
     total += qtyPotelets * (isLong ? 15000 : 10000);
     
@@ -366,7 +366,7 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
         drawItemRow("Jeu de Réflexe (Catching Stick Game)", "1", isLong ? 200000 : 120000);
       }
       if (generatedTicket.options.lyreSceneQty) {
-        drawItemRow("Lyre de Scène Asservie (Paires)", generatedTicket.options.lyreSceneQty.toString(), generatedTicket.options.lyreSceneQty * 150000);
+        drawItemRow("Lyre de Scène Asservie (Paires)", generatedTicket.options.lyreSceneQty.toString(), generatedTicket.options.lyreSceneQty * 100000);
       }
       if (generatedTicket.options.projecteurLedQty) {
         drawItemRow("Projecteur LED Studio (Paires)", generatedTicket.options.projecteurLedQty.toString(), generatedTicket.options.projecteurLedQty * (isLong ? 15000 : 10000));
@@ -564,12 +564,12 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
                         <h6 className="font-bold text-gray-900 text-sm">Lyre de Scène</h6>
                       </div>
                       <p className="text-[10px] text-gray-500 leading-tight mt-1">Moving head beam asservi pour effets dynamiques.</p>
-                      <span className="text-[9px] font-bold text-gray-400 block mt-1">Tarif fixe: 150 000 FCFA / paire</span>
+                      <span className="text-[9px] font-bold text-gray-400 block mt-1">Tarif fixe: 100 000 FCFA / paire</span>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center justify-between border-t border-gray-100/50 pt-3">
                     <span className="text-sm font-black text-orange-600">
-                      {(qtyLyre * 150000).toLocaleString('fr-FR')} FCFA
+                      {(qtyLyre * 100000).toLocaleString('fr-FR')} FCFA
                     </span>
                     <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-1">
                       <button type="button" onClick={() => setQtyLyre(Math.max(0, qtyLyre - 1))} className="w-6 h-6 flex items-center justify-center bg-white rounded-md shadow-sm text-gray-600 hover:text-red-500 hover:bg-gray-50 disabled:opacity-50" disabled={qtyLyre === 0}>

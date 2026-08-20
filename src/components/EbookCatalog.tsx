@@ -72,6 +72,18 @@ export default function EbookCatalog({ onStartBooking }: EbookCatalogProps) {
           </div>
           <div className="flex items-center gap-3">
             <button 
+              onClick={() => {
+                import('../utils/generateCatalogPdf').then(({ downloadCatalogEbookPdf }) => {
+                  downloadCatalogEbookPdf();
+                });
+              }}
+              className="flex items-center gap-2 h-10 px-4 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-orange-500 transition-colors shadow-sm"
+              title="Télécharger le catalogue en PDF"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">PDF</span>
+            </button>
+            <button 
               onClick={prevButtonClick}
               disabled={currentPage === 0}
               className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:text-orange-500 hover:border-orange-200 disabled:opacity-50 disabled:hover:text-gray-600 transition-colors shadow-sm"
@@ -192,14 +204,8 @@ export default function EbookCatalog({ onStartBooking }: EbookCatalogProps) {
                             onClick={() => handleReserve(product.title)}
                             className="w-full py-3.5 bg-black hover:bg-orange-500 text-white font-bold uppercase text-xs tracking-widest rounded-none transition-colors flex items-center justify-center gap-2"
                           >
-                            <span>Ajouter au devis</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
-                          <button 
-                            onClick={() => handleReserve(product.title)}
-                            className="w-full py-3.5 bg-white border-2 border-black hover:bg-black hover:text-white text-black font-bold uppercase text-xs tracking-widest rounded-none transition-colors flex items-center justify-center gap-2"
-                          >
                             <span>Simuler mon devis</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>

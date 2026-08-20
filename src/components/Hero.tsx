@@ -1,12 +1,15 @@
 import React from 'react';
 import { Camera } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import rmEventsLogo from '../assets/images/rm_events_logo_1781896594927.jpg';
 
 interface HeroProps {
-  setCurrentTab: (tab: string) => void;
+  onStartBooking?: () => void;
 }
 
-export default function Hero({ setCurrentTab }: HeroProps) {
+export default function Hero({ onStartBooking }: HeroProps) {
+  const navigate = useNavigate();
+
   return (
     <section id="hero-section" className="relative overflow-hidden bg-gradient-to-b from-gray-50 to-white py-16 sm:py-20 border-b border-gray-150">
       
@@ -29,13 +32,16 @@ export default function Hero({ setCurrentTab }: HeroProps) {
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
               <button
-                onClick={() => setCurrentTab('catalogue')}
+                onClick={() => navigate('/catalogue')}
                 className="w-full sm:w-auto px-7 py-3.5 bg-gray-900 hover:bg-black text-white font-bold text-xs uppercase tracking-widest rounded-none shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer border border-gray-800"
               >
                 📖 Feuilleter le Catalogue
               </button>
               <button
-                onClick={() => setCurrentTab('booking')}
+                onClick={() => {
+                  if (onStartBooking) onStartBooking();
+                  else navigate('/simulation');
+                }}
                 className="w-full sm:w-auto px-7 py-3.5 bg-gold-500 text-white font-black text-xs uppercase tracking-widest rounded-none shadow-lg hover:bg-gold-600 hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer"
               >Simuler mon devis</button>
             </div>
