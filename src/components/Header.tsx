@@ -9,7 +9,6 @@ export default function Header() {
 
   const navItems = [
     { path: '/', label: 'Accueil' },
-    { path: '/notre-concept', label: 'Notre Concept' },
     { path: '/catalogue', label: 'Catalogue' },
     { path: '/simulation', label: 'Simuler un devis' },
   ];

@@ -144,12 +144,6 @@ export default function App() {
             </div>
           } />
           
-          <Route path="/notre-concept" element={
-            <div className="space-y-0">
-              <Hero onStartBooking={() => navigate('/simulation')} />
-            </div>
-          } />
-
           <Route path="/catalogue" element={
             <div className="bg-white min-h-[85vh]">
               <EbookCatalog onStartBooking={handleStartBooking} />
