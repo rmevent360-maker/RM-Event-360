@@ -1,4 +1,6 @@
-import logoImg from '../assets/images/logo.png';
+const fs = require('fs');
+
+const content = `import logoImg from '../assets/images/logo.png';
 import photoboothImg from '../assets/images/photobooth.png';
 import reflexeImg from '../assets/images/reflexe.png';
 import lyreImg from '../assets/images/lyre.png';
@@ -84,7 +86,7 @@ export const CATALOG_PRODUCTS: CatalogProduct[] = [
     title: 'Barres de Bienvenue / Potelets VIP',
     imageLabel: 'Potelets VIP',
     image: poteletsImg,
-    description: 'Apportez une touche de prestige et un esprit "Tapis Rouge VIP" dès l\'entrée de vos événements. Potelets de guidage en finition dorée miroir accompagnés de cordons en velours.',
+    description: "Apportez une touche de prestige et un esprit \"Tapis Rouge VIP\" dès l'entrée de vos événements. Potelets de guidage en finition dorée miroir accompagnés de cordons en velours.",
     pointsForts: [
       "Acier inoxydable avec placage doré haute brillance luxueux.",
       "Cordon épais en velours rouge avec crochets de fixation dorés.",
@@ -105,3 +107,6 @@ export const CATALOG_META = {
   logo: logoImg,
   totalSpreads: 7, // Cover(1), 5 Products(5), Back Cover(1)
 };
+`;
+
+fs.writeFileSync('src/data/catalog.ts', content);

@@ -16,8 +16,11 @@ export interface Booking {
     photobooth360?: boolean;
     reflexeGame?: boolean;
     lyreScene?: boolean;
+    lyreSceneQty?: number;
     projecteurLed?: boolean;
+    projecteurLedQty?: number;
     poteletsDores?: boolean;
+    poteletsDoresQty?: number;
   };
   totalPrice: number;
   promoCodeUsed?: string;

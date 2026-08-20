@@ -17,6 +17,7 @@ import { Booking, PromoCode, PartnerAccount, PartnerActivity, PayoutRequest } fr
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('accueil');
+  const [preselectedItem, setPreselectedItem] = useState<string | null>(null);
 
   // Unified Reactive Databases in local state to allow cross-system reactivity
   const [bookings, setBookings] = useState<Booking[]>(INITIAL_BOOKINGS);
@@ -138,8 +139,8 @@ export default function App() {
 
         {/* VIEW: EBOOK CATALOGUE */}
         {currentTab === 'catalogue' && (
-          <div className="bg-gray-50 min-h-[85vh]">
-            <EbookCatalog setCurrentTab={setCurrentTab} />
+          <div className="bg-white min-h-[85vh]">
+            <EbookCatalog onStartBooking={(item) => { setPreselectedItem(item || null); setCurrentTab('booking'); }} />
           </div>
         )}
 
@@ -148,6 +149,7 @@ export default function App() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
             <BookingForm 
               onAddBooking={handleAddBooking} 
+              preselectedItem={preselectedItem}
             />
           </div>
         )}

@@ -1,4 +1,6 @@
-import logoImg from '../assets/images/logo.png';
+const fs = require('fs');
+
+const content = `import logoImg from '../assets/images/logo.png';
 import photoboothImg from '../assets/images/photobooth.png';
 import reflexeImg from '../assets/images/reflexe.png';
 import lyreImg from '../assets/images/lyre.png';
@@ -66,31 +68,16 @@ export const CATALOG_PRODUCTS: CatalogProduct[] = [
   {
     pageNumber: 5,
     category: 'ÉCLAIRAGE & ACCUEIL',
-    title: 'Projecteurs LED',
-    imageLabel: 'Projecteur LED',
+    title: 'Projecteurs LED & Barres VIP',
+    imageLabel: 'Projecteur LED et Barres',
     image: projecteurImg,
-    description: "Panneau LED professionnel assurant un éclairage doux, homogène et réglable pour vos espaces d'accueil, plateaux de tournage, zones de prise de vue ou stands.",
+    description: "La combinaison parfaite pour un accueil de prestige : un éclairage doux et professionnel sur trépied, associé à des potelets dorés avec cordons en velours rouge pour une entrée tapis rouge.",
     pointsForts: [
-      "Variateur d'intensité et de température de couleur (chaud/froid).",
-      'Trépied télescopique réglable en hauteur, stable et résistant.',
-      'Diffuseur dépoli intégré pour un rendu doux sans éblouissement.'
+      "Projecteurs LED avec variateur de température (chaud/froid).",
+      "Potelets en acier inoxydable avec placage doré haute brillance.",
+      "Cordon épais en velours rouge avec crochets dorés."
     ],
-    idealPour: 'Corners photo, interviews vidéo, éclairage d’exposition et scènes VIP.',
-    contactWhatsApp: '+221 77 976 20 75',
-  },
-  {
-    pageNumber: 6,
-    category: 'ACCUEIL & ÉLÉGANCE',
-    title: 'Barres de Bienvenue / Potelets VIP',
-    imageLabel: 'Potelets VIP',
-    image: poteletsImg,
-    description: 'Apportez une touche de prestige et un esprit "Tapis Rouge VIP" dès l\'entrée de vos événements. Potelets de guidage en finition dorée miroir accompagnés de cordons en velours.',
-    pointsForts: [
-      "Acier inoxydable avec placage doré haute brillance luxueux.",
-      "Cordon épais en velours rouge avec crochets de fixation dorés.",
-      "Parfait pour guider les invités et délimiter les accès VIP."
-    ],
-    idealPour: 'Entrées VIP, cérémonies, remises de prix, galas et événements de marque.',
+    idealPour: 'Entrées VIP, interviews, corners photo, cérémonies et galas.',
     contactWhatsApp: '+221 77 976 20 75',
   }
 ];
@@ -103,5 +90,8 @@ export const CATALOG_META = {
   phone: '+221 77 976 20 75',
   whatsappUrl: 'https://wa.me/221779762075',
   logo: logoImg,
-  totalSpreads: 7, // Cover(1), 5 Products(5), Back Cover(1)
+  totalSpreads: 6, // Cover, 4 Products, Back Cover
 };
+`;
+
+fs.writeFileSync('src/data/catalog.ts', content);
