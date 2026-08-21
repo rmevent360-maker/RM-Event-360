@@ -2,6 +2,17 @@ import React, { useState } from 'react';
 import { KeyRound, TrendingUp, HandCoins, Award, PlusCircle, CheckSquare, Search, Wallet, FileText, Smartphone, Send, ListCollapse } from 'lucide-react';
 import { PromoCode, Booking, PartnerAccount, PartnerActivity, PayoutRequest } from '../types';
 
+// Helper pour garantir le formatage correct du prix avec un espace standard
+const formatPrice = (value: number | string): string => {
+  let numericValue = typeof value === 'string' 
+    ? parseInt(value.replace(/\//g, ''), 10) 
+    : value;
+    
+  if (isNaN(numericValue)) numericValue = 0;
+  
+  return numericValue.toLocaleString('fr-FR').replace(/\u202f/g, ' ');
+};
+
 interface PartnerDashboardProps {
   bookings: Booking[];
   promoCodes: PromoCode[];
@@ -149,7 +160,7 @@ export default function PartnerDashboard({
     };
 
     onAddPayoutRequest(newRequest);
-    setPayoutSuccess(`Demande de versement de ${payoutAmount.toLocaleString()} FCFA soumise avec succès !`);
+    setPayoutSuccess(`Demande de versement de ${formatPrice(payoutAmount)} FCFA soumise avec succès !`);
   };
 
   return (
@@ -412,8 +423,8 @@ export default function PartnerDashboard({
               <span className="text-gray-500 text-[10px] uppercase tracking-wider block font-bold">Gains Cumulés</span>
               <strong className="text-2xl font-mono text-gray-950 block">
                 {userRole === 'partner' 
-                  ? (activePartner?.totalEarnings || 0).toLocaleString()
-                  : accruedCommissions.toLocaleString()
+                  ? formatPrice(activePartner?.totalEarnings || 0)
+                  : formatPrice(accruedCommissions)
                 } F
               </strong>
               <div className="text-[10px] text-emerald-600 font-bold">Revenus acquis</div>
@@ -424,7 +435,7 @@ export default function PartnerDashboard({
               <span className="text-gray-500 text-[10px] uppercase tracking-wider block font-bold font-sans">Réglé</span>
               <strong className="text-2xl font-mono text-gray-400 block">
                 {userRole === 'partner' 
-                  ? (activePartner?.withdrawnAmount || 0).toLocaleString()
+                  ? formatPrice(activePartner?.withdrawnAmount || 0)
                   : '30.000'
                 } F
               </strong>
@@ -436,8 +447,8 @@ export default function PartnerDashboard({
               <span className="text-gold-600 text-[10px] uppercase tracking-wider block font-black">Solde Dispo</span>
               <strong className="text-2xl font-mono text-gold-500 block">
                 {userRole === 'partner' 
-                  ? ((activePartner?.totalEarnings || 0) - (activePartner?.withdrawnAmount || 0)).toLocaleString()
-                  : (accruedCommissions - 30000 > 0 ? accruedCommissions - 30000 : 0).toLocaleString()
+                  ? formatPrice((activePartner?.totalEarnings || 0) - (activePartner?.withdrawnAmount || 0))
+                  : formatPrice(accruedCommissions - 30000 > 0 ? accruedCommissions - 30000 : 0)
                 } F
               </strong>
               <div className="text-[10px] text-gold-500 font-bold">Transférable vers Wave / OM</div>
@@ -530,11 +541,11 @@ export default function PartnerDashboard({
                         {activePartnerActivities.map((act) => (
                           <tr key={act.id} className="hover:bg-gray-50">
                             <td className="py-3 text-gray-900 font-bold">{act.month}</td>
-                            <td>{(act.visitorCount).toLocaleString()}</td>
+                            <td>{formatPrice(act.visitorCount)}</td>
                             <td className="font-mono text-gray-900 font-bold">{act.boothSessions}</td>
                             <td>{((act.boothSessions / act.visitorCount) * 100).toFixed(1)} %</td>
-                            <td className="font-mono">{(act.totalRevenue).toLocaleString()} F</td>
-                            <td className="font-mono text-gold-600 font-bold">{(act.partnerEarnings).toLocaleString()} F</td>
+                            <td className="font-mono">{formatPrice(act.totalRevenue)} F</td>
+                            <td className="font-mono text-gold-600 font-bold">{formatPrice(act.partnerEarnings)} F</td>
                             <td>
                               <span className={`px-2 py-0.5 rounded-none text-[8px] font-bold uppercase ${
                                 act.status === 'paye' ? 'bg-emerald-100 text-emerald-850' : 'bg-amber-100 text-amber-850'
@@ -585,8 +596,8 @@ export default function PartnerDashboard({
                                 </td>
                                 <td>{b.date}</td>
                                 <td>{b.duration}h</td>
-                                <td className="font-mono">{(b.totalPrice).toLocaleString()} F</td>
-                                <td className="font-mono text-gold-600 font-bold">{(comm).toLocaleString()} F</td>
+                                <td className="font-mono">{formatPrice(b.totalPrice)} F</td>
+                                <td className="font-mono text-gold-600 font-bold">{formatPrice(comm)} F</td>
                                 <td>
                                   <span className="px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded-none text-[8px] font-bold uppercase">
                                     En attente d'event
@@ -697,7 +708,7 @@ export default function PartnerDashboard({
                     .map((pay) => (
                       <div key={pay.id} className="flex justify-between items-center text-[10px] bg-gray-55 p-2.5 rounded-none border border-gray-200">
                         <div>
-                          <span className="font-bold text-gray-800 block">{pay.amount.toLocaleString()} FCFA</span>
+                          <span className="font-bold text-gray-800 block">{formatPrice(pay.amount)} FCFA</span>
                           <span className="text-[9px] text-gray-500 font-mono block uppercase">
                             {pay.method} • {pay.date}
                           </span>

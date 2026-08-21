@@ -34,6 +34,17 @@ const getBase64Image = (imgUrl: string): Promise<string> => {
   });
 };
 
+// Helper pour garantir le formatage correct du prix avec un espace standard
+const formatPrice = (value: number | string): string => {
+  let numericValue = typeof value === 'string' 
+    ? parseInt(value.replace(/\//g, ''), 10) 
+    : value;
+    
+  if (isNaN(numericValue)) numericValue = 0;
+  
+  return numericValue.toLocaleString('fr-FR').replace(/\u202f/g, ' ');
+};
+
 interface BookingFormProps {
   onAddBooking: (newBooking: Booking) => void;
   preselectedItem?: string | null;
@@ -189,7 +200,7 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
           email: booking.clientEmail || 'Non spécifié',
           telephone: booking.clientPhone
         },
-        details: `Date de l'événement : ${booking.date}\nCréneau : ${booking.timeSlot}\nDurée : ${booking.duration}\nAdresse/Quartier : ${dakarDistrict || 'Dakar, Sénégal'}\nOptions Sélectionnées :\n- Photobooth 360° : ${booking.options.photobooth360 ? 'Oui' : 'Non'}\n- Jeu de Réflexe : ${booking.options.reflexeGame ? 'Oui' : 'Non'}\n- Lyre de Scène : ${booking.options.lyreSceneQty || 0} paires\n- Projecteur LED : ${booking.options.projecteurLedQty || 0} paires\n- Potelets Dorés VIP : ${booking.options.poteletsDoresQty || 0} paires\nTotal Devis : ${booking.totalPrice.toLocaleString('fr-FR')} FCFA\nCommentaire : ${customWishes.trim() || 'Aucun'}`,
+        details: `Date de l'événement : ${booking.date}\nCréneau : ${booking.timeSlot}\nDurée : ${booking.duration}\nAdresse/Quartier : ${dakarDistrict || 'Dakar, Sénégal'}\nOptions Sélectionnées :\n- Photobooth 360° : ${booking.options.photobooth360 ? 'Oui' : 'Non'}\n- Jeu de Réflexe : ${booking.options.reflexeGame ? 'Oui' : 'Non'}\n- Lyre de Scène : ${booking.options.lyreSceneQty || 0} paires\n- Projecteur LED : ${booking.options.projecteurLedQty || 0} paires\n- Potelets Dorés VIP : ${booking.options.poteletsDoresQty || 0} paires\nTotal Devis : ${formatPrice(booking.totalPrice)} FCFA\nCommentaire : ${customWishes.trim() || 'Aucun'}`,
       };
 
       const response = await fetch('/api/valider-evenement', {
@@ -355,7 +366,7 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
       const drawItemRow = (name: string, qty: string, price: number) => {
         doc.text(name, 22, y);
         doc.text(qty, 130, y);
-        doc.text(`${price.toLocaleString('fr-FR')} FCFA`, 170, y, { align: 'right' });
+        doc.text(`${formatPrice(price)} FCFA`, 170, y, { align: 'right' });
         y += 7;
       };
 
@@ -385,7 +396,7 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
       doc.setTextColor(26, 26, 26);
       doc.text("TOTAL DEVIS ESTIMATIF", 22, y);
       doc.setTextColor(249, 115, 22);
-      doc.text(`${generatedTicket.totalPrice.toLocaleString('fr-FR')} FCFA`, 170, y, { align: 'right' });
+      doc.text(`${formatPrice(generatedTicket.totalPrice)} FCFA`, 170, y, { align: 'right' });
 
       // Special wishes
       if (customWishes.trim()) {
@@ -513,7 +524,7 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
                   </div>
                   <div className="mt-4 flex items-center justify-between border-t border-gray-100/50 pt-3">
                     <span className="text-sm font-black text-orange-600">
-                      {(duration === 'Journée Pleine' ? 100000 : 60000).toLocaleString('fr-FR')} FCFA
+                      {formatPrice(duration === 'Journée Pleine' ? 100000 : 60000)} FCFA
                     </span>
                     <button
                       type="button"
@@ -540,7 +551,7 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
                   </div>
                   <div className="mt-4 flex items-center justify-between border-t border-gray-100/50 pt-3">
                     <span className="text-sm font-black text-orange-600">
-                      {(duration === 'Journée Pleine' ? 200000 : 120000).toLocaleString('fr-FR')} FCFA
+                      {formatPrice(duration === 'Journée Pleine' ? 200000 : 120000)} FCFA
                     </span>
                     <button
                       type="button"
@@ -569,7 +580,7 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
                   </div>
                   <div className="mt-4 flex items-center justify-between border-t border-gray-100/50 pt-3">
                     <span className="text-sm font-black text-orange-600">
-                      {(qtyLyre * 100000).toLocaleString('fr-FR')} FCFA
+                      {formatPrice(qtyLyre * 100000)} FCFA
                     </span>
                     <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-1">
                       <button type="button" onClick={() => setQtyLyre(Math.max(0, qtyLyre - 1))} className="w-6 h-6 flex items-center justify-center bg-white rounded-md shadow-sm text-gray-600 hover:text-red-500 hover:bg-gray-50 disabled:opacity-50" disabled={qtyLyre === 0}>
@@ -593,12 +604,12 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
                     <div className="flex-1">
                       <h6 className="font-bold text-gray-900 text-sm">Projecteur LED (Trépied)</h6>
                       <p className="text-[10px] text-gray-500 leading-tight mt-1">Éclairage d'ambiance et studio haute puissance.</p>
-                      <span className="text-[9px] font-bold text-gray-400 block mt-1">{(duration === 'Journée Pleine' ? 15000 : 10000).toLocaleString('fr-FR')} FCFA / paire</span>
+                      <span className="text-[9px] font-bold text-gray-400 block mt-1">{formatPrice(duration === 'Journée Pleine' ? 15000 : 10000)} FCFA / paire</span>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center justify-between border-t border-gray-100/50 pt-3">
                     <span className="text-sm font-black text-orange-600">
-                      {(qtyProjecteur * (duration === 'Journée Pleine' ? 15000 : 10000)).toLocaleString('fr-FR')} FCFA
+                      {formatPrice(qtyProjecteur * (duration === 'Journée Pleine' ? 15000 : 10000))} FCFA
                     </span>
                     <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-1">
                       <button type="button" onClick={() => setQtyProjecteur(Math.max(0, qtyProjecteur - 1))} className="w-6 h-6 flex items-center justify-center bg-white rounded-md shadow-sm text-gray-600 hover:text-red-500 hover:bg-gray-50 disabled:opacity-50" disabled={qtyProjecteur === 0}>
@@ -622,12 +633,12 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
                     <div className="flex-1">
                       <h6 className="font-bold text-gray-900 text-sm">Potelets Dorés VIP</h6>
                       <p className="text-[10px] text-gray-500 leading-tight mt-1">Cordon velours rouge pour accueil VIP.</p>
-                      <span className="text-[9px] font-bold text-gray-400 block mt-1">{(duration === 'Journée Pleine' ? 15000 : 10000).toLocaleString('fr-FR')} FCFA / paire</span>
+                      <span className="text-[9px] font-bold text-gray-400 block mt-1">{formatPrice(duration === 'Journée Pleine' ? 15000 : 10000)} FCFA / paire</span>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center justify-between border-t border-gray-100/50 pt-3">
                     <span className="text-sm font-black text-orange-600">
-                      {(qtyPotelets * (duration === 'Journée Pleine' ? 15000 : 10000)).toLocaleString('fr-FR')} FCFA
+                      {formatPrice(qtyPotelets * (duration === 'Journée Pleine' ? 15000 : 10000))} FCFA
                     </span>
                     <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-1">
                       <button type="button" onClick={() => setQtyPotelets(Math.max(0, qtyPotelets - 1))} className="w-6 h-6 flex items-center justify-center bg-white rounded-md shadow-sm text-gray-600 hover:text-red-500 hover:bg-gray-50 disabled:opacity-50" disabled={qtyPotelets === 0}>
@@ -669,7 +680,7 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
   </span>
               <div className="flex items-end justify-center md:justify-start gap-2">
                 <span className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
-                  {totalPrice.toLocaleString('fr-FR')}
+                  {formatPrice(totalPrice)}
                 </span>
                 <span className="text-sm font-bold text-gray-400 mb-1">FCFA</span>
               </div>
@@ -746,7 +757,7 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
 
               <div className="mt-8 pt-6 border-t border-gray-800">
                 <span className="text-xs font-bold text-gray-500 uppercase block mb-2">Total Estimé</span>
-                <span className="text-3xl font-black text-orange-500 leading-none">{totalPrice.toLocaleString('fr-FR')} FCFA</span>
+                <span className="text-3xl font-black text-orange-500 leading-none">{formatPrice(totalPrice)} FCFA</span>
                 <span className="text-[10px] text-gray-400 block mt-2">{duration}</span>
                 <span className="text-[10px] text-gray-400 italic block mt-1">simulation sans engagement - Ajustez vos choix librement</span>
               </div>
@@ -927,7 +938,7 @@ export default function BookingForm({ onAddBooking, preselectedItem }: BookingFo
               <div className="pt-2.5 border-t border-dashed border-gray-200 space-y-1 text-gray-550">
                 <div className="flex justify-between font-bold text-amber-700 bg-amber-50/70 p-2 border border-amber-100">
                   <span>Total Devis :</span>
-                  <span>{generatedTicket.totalPrice.toLocaleString('fr-FR')} FCFA</span>
+                  <span>{formatPrice(generatedTicket.totalPrice)} FCFA</span>
                 </div>
                 <p className="text-[10px] text-gray-500 italic mt-1 font-sans">
                   Aucun paiement n'est exigé en ligne. Vous pouvez télécharger votre devis officiel ci-dessous.
