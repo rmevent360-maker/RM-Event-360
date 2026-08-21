@@ -3,6 +3,7 @@ import { Calendar, Clock, Phone, Mail, User, ShieldCheck, Ticket, Download, Arro
 import { jsPDF } from 'jspdf';
 import { Booking } from '../types';
 import rmEventsLogo from '../assets/images/rm_events_logo_1781896594927.jpg';
+import { formatPrice } from '../utils/format';
 
 // Helper function to load and convert image URL to base64 for PDF document embedding
 const getBase64Image = (imgUrl: string): Promise<string> => {
@@ -35,15 +36,7 @@ const getBase64Image = (imgUrl: string): Promise<string> => {
 };
 
 // Helper pour garantir le formatage correct du prix avec un espace standard
-const formatPrice = (value: number | string): string => {
-  let numericValue = typeof value === 'string' 
-    ? parseInt(value.replace(/\//g, ''), 10) 
-    : value;
-    
-  if (isNaN(numericValue)) numericValue = 0;
-  
-  return numericValue.toLocaleString('fr-FR').replace(/\u202f/g, ' ');
-};
+
 
 interface BookingFormProps {
   onAddBooking: (newBooking: Booking) => void;

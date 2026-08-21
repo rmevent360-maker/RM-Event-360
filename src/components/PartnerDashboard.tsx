@@ -1,17 +1,10 @@
 import React, { useState } from 'react';
 import { KeyRound, TrendingUp, HandCoins, Award, PlusCircle, CheckSquare, Search, Wallet, FileText, Smartphone, Send, ListCollapse } from 'lucide-react';
 import { PromoCode, Booking, PartnerAccount, PartnerActivity, PayoutRequest } from '../types';
+import { formatPrice } from '../utils/format';
 
 // Helper pour garantir le formatage correct du prix avec un espace standard
-const formatPrice = (value: number | string): string => {
-  let numericValue = typeof value === 'string' 
-    ? parseInt(value.replace(/\//g, ''), 10) 
-    : value;
-    
-  if (isNaN(numericValue)) numericValue = 0;
-  
-  return numericValue.toLocaleString('fr-FR').replace(/\u202f/g, ' ');
-};
+
 
 interface PartnerDashboardProps {
   bookings: Booking[];

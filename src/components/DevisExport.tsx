@@ -2,19 +2,10 @@ import React, { useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { Download, Loader2 } from 'lucide-react';
+import { formatPrice } from '../utils/format';
 
 // Helper pour garantir le formatage correct du prix avec un espace standard
-const formatPrice = (value: number | string): string => {
-  let numericValue = typeof value === 'string' 
-    ? parseInt(value.replace(/\//g, ''), 10) 
-    : value;
-    
-  if (isNaN(numericValue)) numericValue = 0;
-  
-  // toLocaleString('fr-FR') génère un espace insécable fin (U+202F). 
-  // On le remplace par un espace normal pour éviter le bug d'affichage sous html2canvas.
-  return numericValue.toLocaleString('fr-FR').replace(/\u202f/g, ' ');
-};
+
 
 // Mock data as requested
 const MOCK_DEVIS_DATA = {
